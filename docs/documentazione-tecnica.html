@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grapes — Documentazione Tecnica</title>
+<style>
+  :root {
+    --cream: #F7F3EA;
+    --paper: #FFFFFF;
+    --ink: #241629;
+    --ink-soft: #6B5F76;
+    --ink-faint: #9A8FA8;
+    --accent: #6D28D9;
+    --accent-soft: #EDE4FB;
+    --accent-line: #C9A8F0;
+    --border: #E6DFCF;
+    --gold: #9C6B14;
+    --gold-soft: #F6ECD8;
+    --code-bg: #1E1526;
+    --code-text: #EEE6F7;
+    --code-accent: #C9A8F0;
+    --danger: #B3261E;
+    --success: #2E7D4F;
+
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "URW Palladio L", Georgia, serif;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --mono: "SF Mono", "Cascadia Code", Consolas, "Roboto Mono", "Liberation Mono", monospace;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    background: var(--cream);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 0 32px 120px;
+  }
+
+  /* ---------- Cover ---------- */
+  .cover {
+    min-height: 92vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 28px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 64px;
+  }
+  .cover .eyebrow {
+    font-family: var(--mono);
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .cover h1 {
+    font-family: var(--serif);
+    font-size: 56px;
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+    font-weight: 600;
+  }
+  .cover .subtitle {
+    font-size: 20px;
+    color: var(--ink-soft);
+    max-width: 46ch;
+    margin: 0;
+  }
+  .cover .meta {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+  .cover .meta strong { color: var(--ink); display: block; font-family: var(--sans); font-size: 14px; margin-bottom: 2px; }
+
+  /* ---------- Type scale ---------- */
+  h2 {
+    font-family: var(--serif);
+    font-size: 32px;
+    font-weight: 600;
+    margin: 0 0 8px;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+  .section-number {
+    font-family: var(--mono);
+    font-size: 14px;
+    color: var(--accent);
+    letter-spacing: 0.06em;
+  }
+  h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    font-weight: 600;
+    margin: 36px 0 12px;
+    color: var(--ink);
+  }
+  h4 {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 700;
+    margin: 24px 0 8px;
+    color: var(--ink);
+  }
+  p { margin: 0 0 14px; max-width: 68ch; }
+  .lede { font-size: 18px; color: var(--ink-soft); max-width: 62ch; }
+  a { color: var(--accent); }
+  strong { color: var(--ink); }
+  code {
+    font-family: var(--mono);
+    font-size: 0.88em;
+    background: var(--accent-soft);
+    color: #4C1D95;
+    padding: 1px 6px;
+    border-radius: 4px;
+  }
+
+  section.chapter {
+    padding-top: 56px;
+    margin-top: 8px;
+    border-top: 1px solid var(--border);
+  }
+  section.chapter:first-of-type { border-top: none; }
+
+  /* ---------- TOC ---------- */
+  .toc {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 64px;
+  }
+  .toc h2 { font-size: 22px; margin-bottom: 18px; }
+  .toc ol { margin: 0; padding: 0; list-style: none; counter-reset: toc; }
+  .toc li { counter-increment: toc; margin-bottom: 9px; }
+  .toc li a {
+    text-decoration: none;
+    color: var(--ink);
+    display: flex;
+    gap: 12px;
+    font-size: 15px;
+  }
+  .toc li a::before {
+    content: counter(toc, decimal-leading-zero);
+    font-family: var(--mono);
+    color: var(--accent);
+    flex-shrink: 0;
+  }
+  .toc li a:hover { color: var(--accent); }
+
+  /* ---------- Cards / grids ---------- */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .card {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 20px 22px;
+  }
+  .card h4 { margin-top: 0; font-size: 16px; }
+  .card p:last-child { margin-bottom: 0; }
+  .card p { font-size: 14.5px; }
+
+  .decision {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    padding: 20px 24px;
+    margin: 20px 0;
+  }
+  .decision .choice {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 6px;
+  }
+  .decision h4 { margin: 0 0 10px; font-size: 18px; font-family: var(--serif); font-weight: 600; }
+  .decision .alt {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .decision .alt strong { color: var(--ink-soft); font-weight: 700; }
+
+  /* ---------- Tables ---------- */
+  .table-wrap { overflow-x: auto; margin: 20px 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td {
+    text-align: left;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    font-family: var(--sans);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--ink-soft);
+    font-weight: 700;
+    border-bottom: 2px solid var(--ink);
+  }
+  td code { white-space: nowrap; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ---------- File tree ---------- */
+  .tree {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 22px 26px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.9;
+    overflow-x: auto;
+    margin: 20px 0;
+  }
+  .tree .dir { color: var(--code-accent); }
+  .tree .comment { color: #9A8AAE; }
+
+  /* ---------- Pseudo code / logic blocks ---------- */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-text);
+    border-radius: 8px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.7;
+    margin: 20px 0;
+  }
+  pre .kw { color: var(--code-accent); }
+  pre .fn { color: #F0C674; }
+  pre .cm { color: #9A8AAE; font-style: italic; }
+  pre .str { color: #A8D8B9; }
+
+  .tag {
+    display: inline-block;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--gold-soft);
+    color: var(--gold);
+    margin-right: 6px;
+  }
+  .tag.new { background: var(--accent-soft); color: var(--accent); }
+
+  .callout {
+    background: var(--gold-soft);
+    border: 1px solid #E6D2A0;
+    border-radius: 6px;
+    padding: 16px 20px;
+    font-size: 14.5px;
+    margin: 20px 0;
+  }
+  .callout strong { color: var(--gold); }
+
+  hr.rule { border: none; border-top: 1px solid var(--border); margin: 40px 0; }
+
+  .back-to-top {
+    display: inline-block;
+    margin-top: 40px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    text-decoration: none;
+  }
+
+  .print-bar {
+    position: fixed;
+    top: 20px;
+    right: 24px;
+    z-index: 10;
+  }
+  .print-bar button {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 600;
+    background: var(--ink);
+    color: var(--cream);
+    border: none;
+    border-radius: 20px;
+    padding: 10px 18px;
+    cursor: pointer;
+  }
+  .print-bar button:hover { background: var(--accent); }
+  .print-bar button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  footer.doc-footer {
+    margin-top: 80px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  @media (max-width: 640px) {
+    .cover h1 { font-size: 38px; }
+    .grid-2 { grid-template-columns: 1fr; }
+    .page { padding: 0 18px 100px; }
+  }
+
+  @media print {
+    .print-bar { display: none; }
+    body { background: #FFFFFF; }
+    .cover { min-height: 0; padding-top: 40px; page-break-after: always; }
+    section.chapter { page-break-before: always; padding-top: 0; border-top: none; margin-top: 0; }
+    section.chapter:first-of-type { page-break-before: avoid; }
+    .card, .decision, .tree, pre, .toc { break-inside: avoid; }
+    a { color: var(--ink); text-decoration: none; }
+    .toc { page-break-after: always; }
+  }
+</style>
+</head>
+<body>
+
+<div class="print-bar"><button onclick="window.print()">Stampa / Salva PDF</button></div>
+
+<div class="page">
+
+  <section class="cover">
+    <div class="eyebrow">Documentazione tecnica interna</div>
+    <h1>Grapes<br>sotto il cofano</h1>
+    <p class="subtitle">Come è costruita l'app di gestione per la pasticceria Grapes di Santa Margherita Ligure: architettura, scelte tecnologiche e descrizione di ogni file del progetto.</p>
+    <div class="meta">
+      <div><strong>Progetto</strong>Grapes Bakery Tracker</div>
+      <div><strong>Stack</strong>Expo (React Native) + TypeScript + Supabase</div>
+      <div><strong>Versione documento</strong>1.0 — Agosto 2026</div>
+    </div>
+  </section>
+
+  <nav class="toc">
+    <h2>Indice</h2>
+    <ol>
+      <li><a href="#architettura">Panoramica dell'architettura</a></li>
+      <li><a href="#scelte">Perché queste tecnologie</a></li>
+      <li><a href="#struttura">Struttura del progetto</a></li>
+      <li><a href="#dati">Il modello dati (Supabase)</a></li>
+      <li><a href="#design-system">Design system e componenti condivisi</a></li>
+      <li><a href="#auth">Autenticazione, sessione e sicurezza</a></li>
+      <li><a href="#i18n-tema">Lingua e tema</a></li>
+      <li><a href="#moduli">Le funzionalità, modulo per modulo</a></li>
+      <li><a href="#navigazione">Navigazione e layout responsivo</a></li>
+      <li><a href="#riferimento-file">Riferimento: ogni file del progetto</a></li>
+    </ol>
+  </nav>
+
+  <!-- 1. ARCHITETTURA -->
+  <section class="chapter" id="architettura">
+    <div class="section-number">01</div>
+    <h2>Panoramica dell'architettura</h2>
+    <p class="lede">Grapes non ha un server proprio: è un client React Native che parla direttamente con un progetto Supabase, che funge da backend completo (database + autenticazione + API + regole di accesso).</p>
+
+    <p>L'app è organizzata in tre grandi blocchi:</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>1. Client (questo repository)</h4>
+        <p>App Expo/React Native in TypeScript. Gira su Android, iOS e Web dallo stesso codice. Contiene schermate, componenti, logica di stato locale e le chiamate al database.</p>
+      </div>
+      <div class="card">
+        <h4>2. Supabase (backend gestito)</h4>
+        <p>Database PostgreSQL reale, autenticazione utenti, API REST auto-generata sulle tabelle, funzioni SQL per le operazioni più delicate. Non c'è un server Node/Express separato da mantenere.</p>
+      </div>
+    </div>
+
+    <p>Il client non ha mai accesso diretto e "libero" ai dati: ogni riga di ogni tabella è protetta da una policy di <strong>Row Level Security</strong> (RLS) a livello di database, che filtra automaticamente i dati in base a chi ha effettuato l'accesso. Questo significa che anche se qualcuno leggesse il codice del client (compreso il file <code>.env</code> con la chiave "anon"), non potrebbe comunque leggere o modificare i dati di un altro utente: il controllo non è "a fiducia" nel client, è imposto dal database stesso.</p>
+
+    <p>Le operazioni che toccano più tabelle insieme e devono succedere "tutte o nessuna" (es. spostare scorte tra frigo e freezer, o completare una produzione che consuma ingredienti e crea un semilavorato) non sono scritte come sequenze di chiamate dal client, ma come <strong>funzioni PL/pgSQL</strong> (RPC) eseguite in un'unica transazione sul database — vedi il capitolo 4.</p>
+  </section>
+
+  <!-- 2. SCELTE TECNOLOGICHE -->
+  <section class="chapter" id="scelte">
+    <div class="section-number">02</div>
+    <h2>Perché queste tecnologie</h2>
+    <p class="lede">Ogni scelta ha un motivo legato ai vincoli del progetto (mantenere React, build nativa Android, sincronizzazione multi-dispositivo) più che a una preferenza generica.</p>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>React Native + Expo, invece di Kotlin/Java nativo puro</h4>
+      <p>Il brief chiedeva di mantenere React (competenza già presente) e allo stesso tempo ottenere una vera app nativa apribile in Android Studio. Expo aggiunge un livello di produttività sopra React Native: routing a file, hot reload, un ampio set di moduli nativi già pronti (storage, immagini, date picker, calendario, gradient) senza dover scrivere codice Kotlin/Swift a mano per ciascuno.</p>
+      <div class="alt"><strong>Alternativa scartata:</strong> sviluppo nativo puro (Kotlin) — più lavoro, nessun riuso di React, nessuna portabilità futura su iOS/web.</div>
+    </div>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>Supabase, invece di Firebase o un backend custom</h4>
+      <p>Il dominio (ingredienti↔scorte↔location, ricette↔varianti↔ingredienti/componenti, ordini↔ricette) è fortemente relazionale, con vincoli e riferimenti incrociati: un database SQL reale con foreign key e check-constraint è più adatto di un database a documenti. Supabase offre Postgres vero, autenticazione pronta, API auto-generata, RLS nativa e funzioni RPC in un unico servizio gestito, ospitabile in regione UE (rilevante per il GDPR, dato che si trattano dati clienti negli ordini).</p>
+      <div class="alt"><strong>Alternative scartate:</strong> Firebase/Firestore (NoSQL, meno adatto a relazioni complesse) — backend custom Node/Express (server da scrivere, ospitare e mantenere).</div>
+    </div>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>TanStack Query, invece di Redux</h4>
+      <p>Quasi tutto lo stato dell'app è <em>stato remoto</em> (dati che vivono nel database, non nella memoria del client). TanStack Query gestisce automaticamente cache, invalidazione, nuovi tentativi e stati di caricamento/errore per questo tipo di dati, evitando il boilerplate di Redux (action, reducer, thunk) per quelle che sono, in sostanza, letture e scritture verso il server.</p>
+      <div class="alt"><strong>Stato locale</strong> (form nelle modali, preferenza di tema, lingua) resta gestito con <code>useState</code> e Context React, dove Redux non aggiungerebbe valore.</div>
+    </div>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>Expo Router, invece di React Navigation "a mano"</h4>
+      <p>Le schermate corrispondono direttamente ai file dentro <code>src/app</code>. I gruppi <code>(auth)</code> e <code>(app)</code> separano le schermate pubbliche da quelle protette, con <code>Stack.Protected</code> che decide quale gruppo mostrare in base alla sessione. Stesso meccanismo funziona su nativo e web.</p>
+    </div>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>Funzioni RPC in PostgreSQL per le operazioni transazionali</h4>
+      <p>Spostare scorte, completare una produzione o ricevere un ordine fornitore richiedono di aggiornare più righe/tabelle insieme, senza lasciare lo stato a metà se qualcosa va storto. Farlo con più chiamate separate dal client sarebbe rischioso (rete instabile, chiusura app a metà operazione). Le funzioni <code>move_stock</code>, <code>complete_work_plan_task</code> e <code>receive_purchase_order</code> eseguono tutto in un'unica transazione sul database: o va tutto a buon fine, o nulla viene modificato.</p>
+    </div>
+
+    <div class="decision">
+      <div class="choice">Scelto</div>
+      <h4>Sistema di traduzione custom, invece di i18next</h4>
+      <p>Con solo due lingue e poche centinaia di stringhe statiche, una libreria completa come i18next aggiungerebbe complessità (namespace, plurali, interpolazioni avanzate) non necessaria. Un Context React con due dizionari TypeScript (<code>en.ts</code> / <code>it.ts</code>) che condividono lo stesso "shape" dà anche sicurezza a tempo di compilazione: se manca una chiave in un dizionario, TypeScript lo segnala come errore.</p>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4><span class="tag">Libreria</span>react-native-calendars</h4>
+        <p>Per il calendario Ordini: supporta più marcatori colorati nello stesso giorno (uno per ordine), necessario perché più torte possono avere lo stesso ritiro.</p>
+      </div>
+      <div class="card">
+        <h4><span class="tag">Libreria</span>react-native-gifted-charts</h4>
+        <p>Grafici (linea/barre) pensati per React Native con supporto anche su web tramite react-native-web, evitando di introdurre una libreria solo-browser (es. Chart.js) incompatibile con l'app nativa.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3. STRUTTURA -->
+  <section class="chapter" id="struttura">
+    <div class="section-number">03</div>
+    <h2>Struttura del progetto</h2>
+    <p class="lede">Il codice sotto <code>src/</code> è organizzato per responsabilità, non per tipo di file: ogni funzionalità (ingredienti, ricette, ordini...) ha una propria cartella con dati, logica e modali insieme.</p>
+
+    <div class="tree"><span class="comment">src/</span>
+├── <span class="dir">app/</span>              <span class="comment">← una route per file (Expo Router)</span>
+│   ├── <span class="dir">(auth)/</span>        <span class="comment">login e registrazione, pubbliche</span>
+│   └── <span class="dir">(app)/</span>         <span class="comment">tutte le schermate protette da login</span>
+├── <span class="dir">components/</span>       <span class="comment">← componenti UI generici, riusabili ovunque</span>
+│   ├── <span class="dir">ui/</span>            <span class="comment">Card, Button, Modal, Select, Badge...</span>
+│   └── <span class="dir">layout/</span>        <span class="comment">Sidebar, BottomTabBar, AppShell, PageHeader</span>
+├── <span class="dir">features/</span>         <span class="comment">← un modulo per dominio applicativo</span>
+│   ├── <span class="dir">auth/</span>  <span class="dir">ingredients/</span>  <span class="dir">recipes/</span>  <span class="dir">components/</span>
+│   ├── <span class="dir">orders/</span>  <span class="dir">work-plan/</span>  <span class="dir">purchase-orders/</span>
+│   ├── <span class="dir">cost-analysis/</span>  <span class="dir">settings/</span>
+│   └── <span class="comment">ogni modulo: api.ts (query Supabase) + hooks.ts (React Query) + modali</span>
+├── <span class="dir">lib/</span>              <span class="comment">← client Supabase, query client, helper stock</span>
+├── <span class="dir">i18n/</span>             <span class="comment">← dizionari EN/IT + provider</span>
+├── <span class="dir">constants/</span>        <span class="comment">← tema colori, navigazione, unità di misura</span>
+├── <span class="dir">types/</span>            <span class="comment">← tipi TypeScript che rispecchiano le tabelle DB</span>
+└── <span class="dir">hooks/</span>            <span class="comment">← useTheme, useColorScheme
+
+</span><span class="comment">supabase/</span>
+├── schema.sql                  <span class="comment">← schema completo, per un progetto nuovo</span>
+└── migration-*.sql             <span class="comment">← modifiche incrementali per un progetto già live</span></div>
+
+    <p>Questa organizzazione "per feature" (invece che "per tipo", es. tutti gli hook in una cartella, tutti i componenti in un'altra) mantiene vicino tutto ciò che riguarda una stessa funzionalità: se devi capire come funzionano gli ordini, tutto quello che ti serve è in <code>src/features/orders/</code> e nella schermata <code>src/app/(app)/orders.tsx</code>.</p>
+  </section>
+
+  <!-- 4. MODELLO DATI -->
+  <section class="chapter" id="dati">
+    <div class="section-number">04</div>
+    <h2>Il modello dati (Supabase)</h2>
+    <p class="lede">Tutte le tabelle vivono nello schema <code>public</code>, hanno Row Level Security attiva e sono filtrate per <code>owner_id</code> (l'utente proprietario) — direttamente o tramite le tabelle "genitore".</p>
+
+    <h3>Tabelle principali</h3>
+    <div class="table-wrap">
+    <table>
+      <tr><th>Tabella</th><th>A cosa serve</th></tr>
+      <tr><td><code>profiles</code></td><td>Un profilo per utente (nome pasticceria, lingua preferita). Creato automaticamente alla registrazione.</td></tr>
+      <tr><td><code>storage_locations</code></td><td>Le location di stoccaggio (Frigo/Freezer/Dispensa), 3 create in automatico per ogni nuovo utente.</td></tr>
+      <tr><td><code>ingredients</code> / <code>ingredient_stock</code></td><td>Ingredienti grezzi e relativa quantità per location, con soglia minima per gli alert.</td></tr>
+      <tr><td><code>stock_movements</code></td><td>Storico degli spostamenti di scorte tra location.</td></tr>
+      <tr><td><code>components</code> / <code>component_ingredients</code> / <code>component_stock</code></td><td>Semilavorati/preparazioni riutilizzabili (es. frolla): la loro "ricetta" di ingredienti grezzi, il costo/unità calcolato, e lo stock del prodotto una volta preparato.</td></tr>
+      <tr><td><code>recipes</code> / <code>recipe_variants</code> / <code>recipe_variant_ingredients</code></td><td>Ricette finite, con una o più varianti (dosi diverse, es. torta da 500g/1kg/2kg), ciascuna con la propria lista di ingredienti <em>e/o</em> componenti.</td></tr>
+      <tr><td><code>recipe_variant_stock</code></td><td>Stock di prodotto finito per variante (es. torte già pronte), per location.</td></tr>
+      <tr><td><code>orders</code></td><td>Ordini clienti: nome torta libero, ricetta collegata opzionale, data ritiro, stato, prezzo.</td></tr>
+      <tr><td><code>work_plan_tasks</code></td><td>Task del piano di lavoro, giorno per giorno; opzionalmente collegati alla produzione di un componente o di una variante.</td></tr>
+      <tr><td><code>purchase_orders</code> / <code>purchase_order_items</code></td><td>Ordini di materie prime ai fornitori, con le righe articolo (ingrediente, quantità, location, costo).</td></tr>
+      <tr><td><code>cost_history</code></td><td>Storico dei cambi di costo/unità degli ingredienti, popolato automaticamente da un trigger.</td></tr>
+    </table>
+    </div>
+
+    <h3>Le tre funzioni RPC</h3>
+    <p>Ogni funzione gira in una singola transazione: se un controllo fallisce a metà (es. scorte insufficienti), <code>raise exception</code> annulla tutto quello fatto fino a quel punto.</p>
+
+    <div class="table-wrap">
+    <table>
+      <tr><th>Funzione</th><th>Cosa fa</th></tr>
+      <tr><td><code>move_stock(ingrediente, da, a, quantità)</code></td><td>Scala la quantità dalla location di origine, la aggiunge a quella di destinazione, registra il movimento. Usata dal modale "Sposta scorte" negli Ingredienti.</td></tr>
+      <tr><td><code>complete_work_plan_task(task, location_origine)</code></td><td>Legge la ricetta/composizione del componente o variante collegati al task, scala dagli ingredienti/componenti grezzi (nella location indicata) la quantità necessaria in proporzione a quanto va prodotto, poi aggiunge il prodotto finito allo stock nella location target del task, e segna il task completato.</td></tr>
+      <tr><td><code>receive_purchase_order(ordine)</code></td><td>Per ogni riga dell'ordine fornitore, aggiunge la quantità allo stock ingredienti nella location indicata; se è stato specificato un costo/unità, aggiorna anche il costo dell'ingrediente (che a cascata alimenta lo storico costi).</td></tr>
+    </table>
+    </div>
+
+    <h4>Due trigger automatici</h4>
+    <p><code>handle_new_user</code> — alla creazione di un account (evento <code>auth.users</code>), crea il profilo e le 3 location di default.<br>
+    <code>log_ingredient_cost_change</code> — ogni volta che <code>cost_per_unit</code> di un ingrediente cambia (creazione o modifica), inserisce automaticamente una riga in <code>cost_history</code>, così i grafici di Analisi Costi hanno sempre dati reali senza bisogno di una scrittura esplicita dal client.</p>
+
+    <div class="callout"><strong>Nota sui componenti come "ingrediente".</strong> La tabella <code>recipe_variant_ingredients</code> ha sia <code>ingredient_id</code> che <code>component_id</code>, ma un vincolo <code>check</code> impone che sia valorizzato uno solo dei due per riga. Questo permette a una ricetta di essere composta sia da ingredienti grezzi diretti sia da semilavorati con il proprio costo già calcolato (es. Torta al limone = Frolla + Lemon curd + Glassa, ciascuno con dose e costo/kg propri).</div>
+  </section>
+
+  <!-- 5. DESIGN SYSTEM -->
+  <section class="chapter" id="design-system">
+    <div class="section-number">05</div>
+    <h2>Design system e componenti condivisi</h2>
+    <p class="lede">Un'unica fonte di verità per i colori (<code>src/constants/theme.ts</code>) alimenta ogni schermo, sia in tema chiaro che scuro.</p>
+
+    <p>I colori non sono mai scritti "a mano" (es. <code>#7C3AED</code>) dentro le schermate: ogni componente legge i valori tramite l'hook <code>useTheme()</code>, che restituisce la palette corretta in base alla preferenza dell'utente (Automatico/Chiaro/Scuro, gestita da <code>ThemePreferenceProvider</code> e salvata localmente). Cambiare l'aspetto dell'intera app significa quindi modificare un solo file.</p>
+
+    <div class="table-wrap">
+    <table>
+      <tr><th>Token</th><th>Uso</th></tr>
+      <tr><td><code>background</code> / <code>surface</code></td><td>Sfondo pagina (crema) e sfondo delle card (bianco)</td></tr>
+      <tr><td><code>primary</code> / <code>accent</code></td><td>Viola: bottoni pieni e testo/badge d'accento</td></tr>
+      <tr><td><code>sidebar</code> / <code>sidebarActiveBg</code></td><td>Sidebar e stato della voce di menu attiva</td></tr>
+      <tr><td><code>danger</code> / <code>warning</code> / <code>success</code> / <code>info</code> (+ varianti <code>*Bg</code>)</td><td>Stati semantici: alert scorte basse, badge ordine, variazioni di costo</td></tr>
+    </table>
+    </div>
+
+    <p>Sopra il tema, <code>src/components/ui/</code> raccoglie i "mattoncini" riusati in tutte le schermate: <code>Card</code>, <code>Badge</code>, <code>Button</code>, <code>TextField</code>, <code>Select</code>, <code>Modal</code> (finestra di dialogo centrata), <code>DateField</code> (selettore data nativo), <code>SearchInput</code>, <code>SegmentedTabs</code>, <code>StatCard</code>, <code>EmptyState</code>, <code>IconButton</code>. Nessuna schermata definisce il proprio bottone o la propria card da zero.</p>
+  </section>
+
+  <!-- 6. AUTH -->
+  <section class="chapter" id="auth">
+    <div class="section-number">06</div>
+    <h2>Autenticazione, sessione e sicurezza</h2>
+    <p class="lede"><code>src/features/auth/AuthProvider.tsx</code> avvolge tutta l'app e mette a disposizione sessione utente, login, registrazione e logout.</p>
+
+    <p>Il flusso è interamente delegato a Supabase Auth (email + password). Alla registrazione, il trigger <code>handle_new_user</code> crea profilo e location di default lato database, non lato client — così anche registrandosi da un dispositivo diverso in futuro, il comportamento resta identico.</p>
+
+    <p>Il router (<code>src/app/_layout.tsx</code>) usa <code>Stack.Protected</code>: se c'è una sessione valida mostra il gruppo <code>(app)</code>, altrimenti <code>(auth)</code>. Non serve controllare manualmente la sessione in ogni schermata.</p>
+
+    <div class="callout"><strong>Un dettaglio tecnico non ovvio:</strong> su web, Expo Router pre-renderizza le pagine anche lato server (Node), dove l'oggetto <code>window</code> non esiste. Il client Supabase di default usa <code>AsyncStorage</code>, la cui implementazione web tenta di accedere a <code>window.localStorage</code> — mandando in crash il rendering server-side. <code>src/lib/supabase.ts</code> risolve il problema con uno storage adapter che, su web, legge/scrive <code>localStorage</code> solo se <code>window</code> esiste, altrimenti è un no-op.</div>
+
+    <p>Ogni tabella ha RLS attiva con policy <code>owner_id = auth.uid()</code> (diretta o tramite join alla tabella genitore). Anche se un bug nel client tentasse di leggere o scrivere dati di un altro utente, il database rifiuterebbe la richiesta: la sicurezza non dipende dalla correttezza del codice React.</p>
+  </section>
+
+  <!-- 7. I18N E TEMA -->
+  <section class="chapter" id="i18n-tema">
+    <div class="section-number">07</div>
+    <h2>Lingua e tema</h2>
+    <p class="lede">Due Context React indipendenti, entrambi montati nel layout radice.</p>
+
+    <h4>Lingua (<code>src/i18n/</code>)</h4>
+    <p><code>en.ts</code> e <code>it.ts</code> esportano un oggetto identico nella forma (TypeScript obbliga entrambi ad avere le stesse chiavi). <code>I18nProvider</code> rileva la lingua del dispositivo al primo avvio (<code>expo-localization</code>), poi <code>ProfileLanguageSync</code> allinea la lingua a quella salvata sul profilo Supabase appena disponibile — così la preferenza segue l'utente su qualsiasi dispositivo acceda.</p>
+
+    <h4>Tema (<code>src/features/settings/ThemePreferenceProvider.tsx</code>)</h4>
+    <p>Tre stati: Automatico (segue il sistema operativo tramite <code>useColorScheme()</code>), Chiaro, Scuro. La scelta è salvata in <code>AsyncStorage</code> — locale al dispositivo, non sincronizzata (a differenza della lingua, è considerata una preferenza di visualizzazione più che un dato utente).</p>
+  </section>
+
+  <!-- 8. MODULI -->
+  <section class="chapter" id="moduli">
+    <div class="section-number">08</div>
+    <h2>Le funzionalità, modulo per modulo</h2>
+    <p class="lede">Per ogni modulo: a cosa serve, quali file lo compongono, e la logica non ovvia.</p>
+
+    <h3>Dashboard</h3>
+    <p><span class="tag">File</span><code>app/(app)/index.tsx</code></p>
+    <p>Non ha una propria cartella in <code>features/</code>: legge dati già esposti da <code>useIngredients</code>, <code>useRecipes</code> e <code>useStorageLocations</code> e li aggrega con <code>useMemo</code> (conteggio scorte per location, alert sotto soglia, margine medio, top ricette per margine).</p>
+
+    <h3>Ingredienti</h3>
+    <p><span class="tag">File</span><code>features/ingredients/</code> + <code>app/(app)/ingredients.tsx</code></p>
+    <p><code>fetchIngredients()</code> unisce la tabella <code>ingredients</code> con <code>ingredient_stock</code> e restituisce, per ciascun ingrediente, un oggetto <code>stock</code> indicizzato per tipo di location (<code>{'{'} fridge, freezer, pantry {'}'}</code>) — comodo per tabelle e filtri. Il modale "Sposta scorte" chiama la RPC <code>move_stock</code> invece di fare due update separati.</p>
+
+    <h3>Ricette &amp; Componenti</h3>
+    <p><span class="tag">File</span><code>features/recipes/</code>, <code>features/components/</code> + <code>app/(app)/recipes.tsx</code> (due tab nella stessa schermata)</p>
+    <p>Il costo di un componente è sempre <em>calcolato</em>, mai inserito a mano: <code>costPerUnit = costo totale ingredienti ÷ resa del batch</code>. Il costo di una variante di ricetta somma il costo di ogni riga: se la riga referenzia un ingrediente, <code>quantità × costo_unità_ingrediente</code>; se referenzia un componente, <code>quantità × costPerUnit_componente</code> (già calcolato al punto sopra). Margine e percentuale margine si ricavano di conseguenza da <code>prezzo_vendita − costo</code>.</p>
+
+    <h3>Piano di lavoro</h3>
+    <p><span class="tag">File</span><code>features/work-plan/</code> + <code>app/(app)/work-plan.tsx</code></p>
+    <p>Vista giorno per giorno (navigazione con frecce). Un task può essere libero (semplice checklist) o di produzione (collegato a un componente o a una variante, con quantità e location di destinazione). Completare un task libero aggiorna subito lo stato; completare un task di produzione apre <code>CompleteTaskModal</code>, che chiede da quale location prelevare gli ingredienti/componenti, poi chiama la RPC <code>complete_work_plan_task</code> descritta al capitolo 4.</p>
+
+    <h3>Ordini</h3>
+    <p><span class="tag">File</span><code>features/orders/</code> + <code>app/(app)/orders.tsx</code></p>
+    <p>Il nome della torta (<code>cake_name</code>) è testo libero e obbligatorio; la ricetta collegata è facoltativa e serve solo a chi vuole tracciare il costo dell'ordine — non influenza il prezzo, che resta sempre inserito manualmente. Il calendario (<code>react-native-calendars</code>) mostra un pallino colorato per stato ordine su ogni giorno con prenotazioni.</p>
+
+    <h3>Acquisti</h3>
+    <p><span class="tag">File</span><code>features/purchase-orders/</code> + <code>app/(app)/purchases.tsx</code></p>
+    <p>Un ordine fornitore ha più righe (ingrediente, quantità, location, costo/unità opzionale). "Segna come arrivato" chiama <code>receive_purchase_order</code>: aggiorna le scorte e, se presente il costo, anche il prezzo dell'ingrediente — azione irreversibile via UI (coerente con un arrivo merce reale).</p>
+
+    <h3>Analisi costi</h3>
+    <p><span class="tag">File</span><code>features/cost-analysis/</code> + <code>app/(app)/cost-analysis.tsx</code></p>
+    <p>Legge <code>cost_history</code> (popolata dal trigger, capitolo 4) e aggrega lato client: media mensile per l'andamento nell'anno selezionato (con "carry-forward" dei mesi senza variazioni), media annua per il confronto anno su anno.</p>
+
+    <h3>In esaurimento</h3>
+    <p><span class="tag">File</span><code>app/(app)/low-stock.tsx</code></p>
+    <p>Raggruppa per location tutti gli ingredienti con <code>quantity ≤ min_threshold</code> (soglia impostata per location nel modale ingrediente) — la stessa logica usata per il riquadro "Low stock alerts" della Dashboard, ma completa e navigabile.</p>
+  </section>
+
+  <!-- 9. NAVIGAZIONE -->
+  <section class="chapter" id="navigazione">
+    <div class="section-number">09</div>
+    <h2>Navigazione e layout responsivo</h2>
+    <p class="lede"><code>AppShell</code> sceglie il layout in base alla larghezza dello schermo (soglia 820px, <code>TabletBreakpoint</code> in <code>theme.ts</code>), non in base al sistema operativo — così un Android in modalità tablet o con finestra ridimensionata si comporta correttamente.</p>
+
+    <div class="grid-2">
+      <div class="card">
+        <h4>Tablet / Desktop / Web largo</h4>
+        <p><code>Sidebar</code> fissa a sinistra con tutte le 8 sezioni, più Impostazioni e Esci in fondo.</p>
+      </div>
+      <div class="card">
+        <h4>Telefono</h4>
+        <p><code>BottomTabBar</code> con le 4 sezioni più usate (Dashboard, Piano di lavoro, Ricette, Ordini) + "Altro", che elenca le rimanenti (Ingredienti, In esaurimento, Acquisti, Analisi costi).</p>
+      </div>
+    </div>
+
+    <p>Entrambe le navigazioni leggono lo stesso array <code>sidebarNavItems</code>/<code>mobileTabItems</code> in <code>src/constants/navigation.ts</code>: aggiungere una nuova sezione all'app richiede di aggiungerla lì una sola volta.</p>
+  </section>
+
+  <!-- 10. RIFERIMENTO FILE -->
+  <section class="chapter" id="riferimento-file">
+    <div class="section-number">10</div>
+    <h2>Riferimento: ogni file del progetto</h2>
+    <p class="lede">Elenco completo, raggruppato per cartella, con una riga di descrizione per file.</p>
+
+    <h3>src/app — Route (Expo Router)</h3>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Descrizione</th></tr>
+      <tr><td><code>_layout.tsx</code></td><td>Layout radice: monta i provider globali (Query, Tema, Auth, Lingua) e sceglie tra il gruppo (auth) e (app) in base alla sessione.</td></tr>
+      <tr><td><code>(auth)/_layout.tsx</code></td><td>Stack semplice per le due schermate pubbliche.</td></tr>
+      <tr><td><code>(auth)/login.tsx</code></td><td>Form di accesso.</td></tr>
+      <tr><td><code>(auth)/register.tsx</code></td><td>Form di registrazione (nome pasticceria, email, password).</td></tr>
+      <tr><td><code>(app)/_layout.tsx</code></td><td>Monta <code>AppShell</code> e la sincronizzazione lingua↔profilo.</td></tr>
+      <tr><td><code>(app)/index.tsx</code></td><td>Dashboard.</td></tr>
+      <tr><td><code>(app)/ingredients.tsx</code></td><td>Elenco ingredienti, filtri per location, ricerca, tabella (desktop) / card (mobile).</td></tr>
+      <tr><td><code>(app)/low-stock.tsx</code></td><td>Ingredienti sotto soglia, raggruppati per location.</td></tr>
+      <tr><td><code>(app)/recipes.tsx</code></td><td>Tab Ricette + tab Componenti nella stessa schermata.</td></tr>
+      <tr><td><code>(app)/work-plan.tsx</code></td><td>Piano di lavoro giornaliero.</td></tr>
+      <tr><td><code>(app)/orders.tsx</code></td><td>Calendario ordini + pannello laterale giorno selezionato/in arrivo.</td></tr>
+      <tr><td><code>(app)/purchases.tsx</code></td><td>Elenco ordini fornitore.</td></tr>
+      <tr><td><code>(app)/cost-analysis.tsx</code></td><td>Grafici andamento costi.</td></tr>
+      <tr><td><code>(app)/settings.tsx</code></td><td>Selettore lingua, selettore tema, logout.</td></tr>
+      <tr><td><code>(app)/more.tsx</code></td><td>Menu "Altro" per la navigazione mobile.</td></tr>
+    </table></div>
+
+    <h3>src/features — Logica per dominio</h3>
+    <div class="table-wrap"><table>
+      <tr><th>Modulo</th><th>File</th><th>Contenuto</th></tr>
+      <tr><td rowspan="2">auth</td><td><code>AuthProvider.tsx</code></td><td>Sessione, login, registrazione, logout.</td></tr>
+      <tr><td><code>AuthScreenLayout.tsx</code></td><td>Layout condiviso di login/registrazione.</td></tr>
+      <tr><td rowspan="3">ingredients</td><td><code>api.ts</code></td><td>Query/mutazioni Supabase: fetch con stock, crea/modifica, elimina, sposta scorte.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query attorno ad api.ts.</td></tr>
+      <tr><td><code>EditIngredientModal.tsx</code> / <code>MoveStockModal.tsx</code></td><td>Le due modali della schermata.</td></tr>
+      <tr><td rowspan="3">recipes</td><td><code>api.ts</code></td><td>Fetch ricette con costo calcolato (ingredienti + componenti), crea/modifica varianti.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query.</td></tr>
+      <tr><td><code>EditRecipeModal.tsx</code></td><td>Form ricetta con varianti multiple e righe ingrediente/componente.</td></tr>
+      <tr><td rowspan="3">components</td><td><code>api.ts</code></td><td>Fetch componenti con costo/unità calcolato e stock.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query.</td></tr>
+      <tr><td><code>EditComponentModal.tsx</code></td><td>Form componente con anteprima costo dal vivo.</td></tr>
+      <tr><td rowspan="3">orders</td><td><code>api.ts</code></td><td>Fetch ordini con ricetta/variante collegate (join).</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query.</td></tr>
+      <tr><td><code>EditOrderModal.tsx</code></td><td>Form ordine con nome torta libero e ricetta opzionale.</td></tr>
+      <tr><td rowspan="4">work-plan</td><td><code>api.ts</code></td><td>Fetch task per data, crea/modifica/elimina, chiamata alla RPC di completamento.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query, con invalidazione a cascata (scorte, componenti, varianti) al completamento.</td></tr>
+      <tr><td><code>EditWorkPlanTaskModal.tsx</code></td><td>Form task, con sezione produzione opzionale.</td></tr>
+      <tr><td><code>CompleteTaskModal.tsx</code></td><td>Chiede la location di origine e conferma il completamento.</td></tr>
+      <tr><td rowspan="3">purchase-orders</td><td><code>api.ts</code></td><td>Fetch ordini fornitore con righe, crea/modifica/elimina, chiamata alla RPC di ricezione.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query.</td></tr>
+      <tr><td><code>EditPurchaseOrderModal.tsx</code></td><td>Form ordine fornitore con righe multiple.</td></tr>
+      <tr><td rowspan="2">cost-analysis</td><td><code>api.ts</code></td><td>Fetch storico costi.</td></tr>
+      <tr><td><code>hooks.ts</code></td><td>Wrapper React Query.</td></tr>
+      <tr><td rowspan="3">settings</td><td><code>useProfile.ts</code></td><td>Fetch/aggiorna il profilo (lingua preferita).</td></tr>
+      <tr><td><code>ProfileLanguageSync.tsx</code></td><td>Allinea la lingua dell'app a quella salvata sul profilo.</td></tr>
+      <tr><td><code>ThemePreferenceProvider.tsx</code></td><td>Stato e persistenza locale della preferenza tema.</td></tr>
+    </table></div>
+
+    <h3>src/components — UI condivisa</h3>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Descrizione</th></tr>
+      <tr><td><code>themed-text.tsx</code> / <code>themed-view.tsx</code></td><td>Testo e contenitori che leggono automaticamente i colori dal tema attivo.</td></tr>
+      <tr><td><code>ui/Card.tsx</code></td><td>Contenitore a scheda, base di quasi ogni riquadro nell'app.</td></tr>
+      <tr><td><code>ui/Badge.tsx</code></td><td>Etichetta colorata (stato ordine, categoria ricetta, alert).</td></tr>
+      <tr><td><code>ui/Button.tsx</code></td><td>Bottone con varianti (primario/secondario/pericolo/ghost) e stato di caricamento.</td></tr>
+      <tr><td><code>ui/TextField.tsx</code></td><td>Campo di testo con etichetta.</td></tr>
+      <tr><td><code>ui/Select.tsx</code></td><td>Selettore a scelta singola, apre una lista in overlay (non esiste un <code>&lt;select&gt;</code> nativo cross-piattaforma in RN).</td></tr>
+      <tr><td><code>ui/DateField.tsx</code></td><td>Selettore data, usa il date picker nativo del sistema operativo.</td></tr>
+      <tr><td><code>ui/Modal.tsx</code></td><td>Finestra di dialogo centrata riusata da tutte le modali di modifica.</td></tr>
+      <tr><td><code>ui/SearchInput.tsx</code></td><td>Campo di ricerca con icona.</td></tr>
+      <tr><td><code>ui/SegmentedTabs.tsx</code></td><td>Selettore a tab (es. Tutti/Frigo/Freezer/Dispensa, Ricette/Componenti).</td></tr>
+      <tr><td><code>ui/StatCard.tsx</code></td><td>Riquadro statistica della Dashboard.</td></tr>
+      <tr><td><code>ui/EmptyState.tsx</code></td><td>Messaggio "nessun dato ancora" con icona.</td></tr>
+      <tr><td><code>ui/IconButton.tsx</code></td><td>Bottone icona-soltanto (modifica, elimina, sposta...).</td></tr>
+      <tr><td><code>layout/AppShell.tsx</code></td><td>Sceglie sidebar o bottom-tab in base alla larghezza schermo.</td></tr>
+      <tr><td><code>layout/Sidebar.tsx</code></td><td>Menu laterale per tablet/desktop.</td></tr>
+      <tr><td><code>layout/BottomTabBar.tsx</code></td><td>Barra di navigazione inferiore per telefono.</td></tr>
+      <tr><td><code>layout/PageHeader.tsx</code></td><td>Intestazione standard di ogni schermata (titolo, sottotitolo, azione principale).</td></tr>
+    </table></div>
+
+    <h3>src/lib, src/i18n, src/constants, src/types, src/hooks</h3>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Descrizione</th></tr>
+      <tr><td><code>lib/supabase.ts</code></td><td>Istanza del client Supabase, con lo storage adapter sicuro per il rendering web (vedi capitolo 6).</td></tr>
+      <tr><td><code>lib/queryClient.ts</code></td><td>Istanza di TanStack Query e l'elenco centralizzato delle chiavi di cache.</td></tr>
+      <tr><td><code>lib/stock.ts</code></td><td>Funzione condivisa che raggruppa righe di scorte per tipo di location.</td></tr>
+      <tr><td><code>i18n/en.ts</code> / <code>it.ts</code></td><td>Dizionari delle stringhe tradotte.</td></tr>
+      <tr><td><code>i18n/index.tsx</code></td><td>Context/provider di lingua, rilevamento lingua dispositivo.</td></tr>
+      <tr><td><code>constants/theme.ts</code></td><td>Palette colori (chiaro/scuro), tipografia, spaziature, breakpoint.</td></tr>
+      <tr><td><code>constants/navigation.ts</code></td><td>Elenco delle voci di menu per sidebar/tab/altro.</td></tr>
+      <tr><td><code>constants/units.ts</code></td><td>Unità di misura e categorie ricetta disponibili nei form.</td></tr>
+      <tr><td><code>types/database.ts</code></td><td>Tipi TypeScript che rispecchiano le tabelle Supabase e le viste arricchite usate dall'app.</td></tr>
+      <tr><td><code>hooks/use-theme.ts</code></td><td>Restituisce la palette colori corretta in base a preferenza tema + sistema operativo.</td></tr>
+      <tr><td><code>hooks/use-color-scheme.ts(.web.ts)</code></td><td>Wrapper del rilevamento tema di sistema, con variante specifica per il web.</td></tr>
+    </table></div>
+
+    <h3>supabase/ — Schema database</h3>
+    <div class="table-wrap"><table>
+      <tr><th>File</th><th>Descrizione</th></tr>
+      <tr><td><code>schema.sql</code></td><td>Schema completo e aggiornato: da eseguire su un progetto Supabase nuovo, da zero.</td></tr>
+      <tr><td><code>migration-2026-08-14-*.sql</code></td><td>Aggiunge componenti/preparazioni e rende il nome torta libero negli ordini, su un progetto già esistente.</td></tr>
+      <tr><td><code>migration-2026-08-15-*.sql</code></td><td>Aggiunge stock di prodotto finito, piano di lavoro e acquisti fornitori, su un progetto già esistente.</td></tr>
+    </table></div>
+
+    <a class="back-to-top" href="#architettura">↑ Torna all'indice</a>
+  </section>
+
+  <footer class="doc-footer">
+    <span>Grapes — Documentazione tecnica</span>
+    <span>Santa Margherita Ligure</span>
+  </footer>
+
+</div>
+</body>
+</html>
