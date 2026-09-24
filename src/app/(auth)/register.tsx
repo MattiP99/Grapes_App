@@ -10,6 +10,13 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { AuthScreenLayout } from '@/features/auth/AuthScreenLayout';
 import { useTranslation } from '@/i18n';
 
+/**
+ * PAGINA: Registrazione (rotta "/register").
+ *
+ * Crea un nuovo account: nome pasticceria + email + password. La creazione
+ * vera e propria (utente Supabase Auth + riga nel profilo con il nome della
+ * pasticceria) è gestita da `signUp` in AuthProvider — qui c'è solo il form.
+ */
 export default function RegisterScreen() {
   const t = useTranslation();
   const { signUp } = useAuth();

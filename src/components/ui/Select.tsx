@@ -11,6 +11,12 @@ export interface SelectOption<T extends string> {
   value: T;
 }
 
+/**
+ * Menu a tendina "fatto in casa": non esiste un `<select>` nativo uguale su
+ * iOS/Android/web, quindi qui si simula con un pulsante che apre un elenco a
+ * comparsa (in una Modal) da cui scegliere una singola opzione. L'opzione
+ * attualmente selezionata viene evidenziata nella lista.
+ */
 export function Select<T extends string>({
   label,
   value,
@@ -45,6 +51,8 @@ export function Select<T extends string>({
       </Pressable>
 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+        {/* Toccare fuori dall'elenco lo chiude; toccare dentro l'elenco NON deve propagarsi
+            al backdrop (altrimenti si chiuderebbe subito anche cliccando un'opzione). */}
         <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
           <Pressable
             onPress={(e) => e.stopPropagation()}

@@ -11,6 +11,16 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 
+/**
+ * PAGINA: Altro (rotta "/more", solo mobile).
+ *
+ * Su schermi stretti la barra di navigazione in basso ha spazio solo per 4-5
+ * voci; le sezioni meno usate (Ingredienti, Scorte basse, Acquisti, Analisi
+ * costi — vedi `moreScreenItems` in `constants/navigation.ts`) finiscono qui
+ * dentro come semplice elenco di link, più le Impostazioni e il logout.
+ * Su tablet/desktop questa pagina non serve: lì c'è la sidebar con tutte le
+ * voci visibili contemporaneamente (vedi `components/layout/Sidebar.tsx`).
+ */
 export default function MoreScreen() {
   const t = useTranslation();
   const theme = useTheme();

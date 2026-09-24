@@ -1,0 +1,21 @@
+{
+  "short_name": "Grapes",
+  "name": "Grapes",
+  "icons": [
+    {
+      "src": "/pwa-icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "/pwa-icon-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#7C3AED",
+  "background_color": "#F7F3EA"
+}

@@ -9,6 +9,13 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { useTranslation } from '@/i18n';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * Barra di navigazione laterale, mostrata solo su schermi larghi
+ * (tablet/desktop — vedi `AppShell`, che sceglie fra questa e la
+ * `BottomTabBar` mobile in base alla larghezza dello schermo). Elenca TUTTE
+ * le sezioni dell'app (`sidebarNavItems`, a differenza della bottom bar che
+ * ne mostra solo 4-5), più Impostazioni e logout in fondo.
+ */
 export function Sidebar() {
   const theme = useTheme();
   const t = useTranslation();
@@ -32,6 +39,8 @@ export function Sidebar() {
 
       <ScrollView style={styles.nav} contentContainerStyle={styles.navContent} showsVerticalScrollIndicator={false}>
         {sidebarNavItems.map((item) => {
+          // La voce "Dashboard" (href "/") è attiva solo sulla home esatta;
+          // le altre sono attive anche su eventuali sotto-pagine (startsWith).
           const active = item.href === '/' ? pathname === '/' : pathname.startsWith(item.href);
           return (
             <Link key={item.key} href={item.href} asChild>

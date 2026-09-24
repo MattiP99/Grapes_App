@@ -1,3 +1,13 @@
+/**
+ * Tipi TypeScript di tutte le "cose" salvate su Supabase. Le interfacce base
+ * (Ingredient, Recipe, Order, ecc.) rispecchiano 1:1 le colonne delle
+ * rispettive tabelle nel database (vedi supabase/schema.sql per la
+ * definizione SQL). I tipi con nomi come "...WithStock"/"...WithVariants"
+ * sono invece versioni "arricchite" costruite in memoria dalle funzioni in
+ * `src/features/*\/api.ts` (join, calcoli di costo, ecc.) — non esistono come
+ * tali nel database, sono la forma comoda su cui lavora l'interfaccia.
+ */
+
 export type StorageLocationType = 'fridge' | 'freezer' | 'pantry';
 
 export type OrderStatus = 'pending' | 'confirmed' | 'ready' | 'delivered' | 'cancelled';
@@ -35,6 +45,7 @@ export interface IngredientWithStock extends Ingredient {
   stock: StockByLocation;
 }
 
+/** Una riga di storico di uno spostamento di scorta tra magazzini (creata da `moveStock`). Non ancora mostrata in nessuna pagina, solo tenuta a fini di tracciabilità. */
 export interface StockMovement {
   id: string;
   ingredient_id: string;
@@ -125,6 +136,7 @@ export interface Order {
   owner_id: string;
   customer_name: string;
   cake_name: string;
+  // Collegamento a ricetta/variante opzionale: un ordine può essere "libero" (torta non a catalogo).
   recipe_id: string | null;
   variant_id: string | null;
   quantity: number;
@@ -149,6 +161,7 @@ export interface WorkPlanTask {
   task_date: string;
   title: string;
   notes: string | null;
+  // Questi 4 campi sono tutti null per un task "semplice" senza produzione collegata.
   production_type: ProductionType | null;
   component_id: string | null;
   variant_id: string | null;
@@ -181,6 +194,7 @@ export interface PurchaseOrderItem {
   unit_cost: number | null;
 }
 
+/** Uno "scatto" storico del costo di un ingrediente, usato dai grafici della pagina Analisi costi. */
 export interface CostHistoryEntry {
   id: string;
   ingredient_id: string;
@@ -188,6 +202,7 @@ export interface CostHistoryEntry {
   recorded_at: string;
 }
 
+/** Riga del profilo utente: qui vive solo la lingua preferita (il nome pasticceria è nei metadati Supabase, vedi AuthProvider.signUp). */
 export interface Profile {
   id: string;
   preferred_language: Language;

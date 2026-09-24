@@ -11,6 +11,14 @@ import { useThemePreference, type ThemePreference } from '@/features/settings/Th
 import { useI18n } from '@/i18n';
 import type { Language } from '@/types/database';
 
+/**
+ * PAGINA: Impostazioni (rotta "/settings").
+ *
+ * Solo due preferenze regolabili (lingua dell'app e tema chiaro/scuro/di
+ * sistema) più il pulsante di logout. La lingua viene salvata sia localmente
+ * (per effetto immediato) sia sul profilo utente in Supabase (`useUpdateLanguage`,
+ * così la preferenza persiste tra dispositivi diversi).
+ */
 export default function SettingsScreen() {
   const { language, setLanguage, t } = useI18n();
   const { signOut } = useAuth();
@@ -18,6 +26,7 @@ export default function SettingsScreen() {
   const updateLanguage = useUpdateLanguage();
   const { preference, setPreference } = useThemePreference();
 
+  /** Cambia la lingua sia nell'interfaccia corrente che salvata sul profilo remoto. */
   const handleLanguageChange = (next: Language) => {
     setLanguage(next);
     updateLanguage.mutate(next);

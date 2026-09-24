@@ -21,6 +21,18 @@ import type { IngredientWithStock, StorageLocationType } from '@/types/database'
 
 type FilterValue = 'all' | StorageLocationType;
 
+/**
+ * PAGINA: Ingredienti (rotta "/ingredients").
+ *
+ * Elenco di tutti gli ingredienti con le quantità in giacenza nei tre magazzini
+ * (frigo, freezer, dispensa), il costo unitario e il fornitore. Si può:
+ * - Cercare per nome e filtrare per magazzino (tab "Tutti/Frigo/Freezer/Dispensa").
+ * - Spostare quantità tra magazzini (icona "repeat" → MoveStockModal).
+ * - Modificare o eliminare un ingrediente (EditIngredientModal).
+ * Su schermi larghi (tablet/desktop) i dati sono mostrati in una tabella con
+ * colonne fisse; su mobile invece ogni ingrediente diventa una card con badge
+ * per le quantità (più leggibile su schermi stretti).
+ */
 export default function IngredientsScreen() {
   const t = useTranslation();
   const theme = useTheme();
@@ -33,11 +45,14 @@ export default function IngredientsScreen() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<FilterValue>('all');
   const [editing, setEditing] = useState<IngredientWithStock | null | 'new'>(null);
+  // Ingrediente per cui è aperta la modale "sposta quantità tra magazzini" (null = chiusa).
   const [moving, setMoving] = useState<IngredientWithStock | null>(null);
 
+  /** Applica in sequenza il filtro testuale e quello per magazzino. */
   const filtered = useMemo(() => {
     return ingredients.filter((ing) => {
       if (search && !ing.name.toLowerCase().includes(search.toLowerCase())) return false;
+      // Se è selezionato un magazzino specifico, mostra solo chi ha una quantità > 0 lì.
       if (filter !== 'all' && !((ing.stock[filter]?.quantity ?? 0) > 0)) return false;
       return true;
     });
@@ -77,6 +92,7 @@ export default function IngredientsScreen() {
       ) : filtered.length === 0 ? (
         <EmptyState icon="box" message={t.ingredients.empty} />
       ) : isWide ? (
+        // --- Layout desktop/tablet: tabella con intestazione fissa e righe compatte ---
         <Card style={styles.tableCard}>
           <View style={[styles.tableHeader, { borderBottomColor: theme.border }]}>
             <ThemedText type="label" themeColor="textSecondary" style={styles.colName}>
@@ -116,6 +132,7 @@ export default function IngredientsScreen() {
           />
         </Card>
       ) : (
+        // --- Layout mobile: una card per ingrediente ---
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.id}
@@ -141,6 +158,11 @@ export default function IngredientsScreen() {
   );
 }
 
+/**
+ * Cella di quantità per un magazzino specifico: mostra "—" se non c'è nulla,
+ * altrimenti la quantità con un'icona di allarme se è scesa sotto la soglia minima.
+ * Usata solo nella tabella (layout desktop/tablet).
+ */
 function StockCell({ ingredient, type }: { ingredient: IngredientWithStock; type: StorageLocationType }) {
   const theme = useTheme();
   const entry = ingredient.stock[type];
@@ -164,6 +186,7 @@ function StockCell({ ingredient, type }: { ingredient: IngredientWithStock; type
   );
 }
 
+/** Una riga della tabella ingredienti (layout desktop/tablet): nome, 3 colonne di scorte, costo, fornitore, azioni. */
 function IngredientTableRow({
   ingredient,
   onEdit,
@@ -196,6 +219,7 @@ function IngredientTableRow({
   );
 }
 
+/** Una card ingrediente (layout mobile): nome/costo/fornitore in alto, un badge per ogni magazzino con scorta > 0. */
 function IngredientCardRow({
   ingredient,
   onEdit,
@@ -232,6 +256,7 @@ function IngredientCardRow({
         {types.map((type) => {
           const entry = ingredient.stock[type];
           const isLow = !!entry && entry.min_threshold > 0 && entry.quantity <= entry.min_threshold;
+          // Magazzini senza scorta non mostrano badge (altrimenti sarebbero 3 badge sempre, spesso vuoti).
           if (!entry || entry.quantity === 0) return null;
           return (
             <Badge

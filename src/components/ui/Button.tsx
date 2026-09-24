@@ -11,11 +11,13 @@ interface ButtonProps {
   onPress?: () => void;
   variant?: ButtonVariant;
   disabled?: boolean;
+  /** Mostra uno spinner al posto del testo (usato durante il salvataggio) e disabilita il pulsante. */
   loading?: boolean;
   icon?: React.ReactNode;
   style?: ViewStyle;
 }
 
+/** Il pulsante standard dell'app, in 4 varianti: primary (azione principale, viola), secondary (grigio), ghost (solo bordo, es. "Annulla"), danger (rosso, es. "Elimina"). */
 export function Button({ label, onPress, variant = 'primary', disabled, loading, icon, style }: ButtonProps) {
   const theme = useTheme();
 

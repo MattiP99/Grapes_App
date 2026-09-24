@@ -1,5 +1,12 @@
 import type { Feather } from '@expo/vector-icons';
 
+/**
+ * Definisce QUALI sezioni esistono e con quale icona/etichetta, per i 3 menu
+ * di navigazione dell'app (sidebar desktop, barra in basso mobile, pagina
+ * "Altro" mobile). Cambiare l'ordine o il contenuto di questi array è
+ * l'unico posto da toccare per aggiungere/rimuovere una voce di menu, senza
+ * bisogno di modificare i componenti Sidebar/BottomTabBar/MoreScreen stessi.
+ */
 export interface NavItem {
   key: string;
   href:

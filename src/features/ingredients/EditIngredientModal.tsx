@@ -13,6 +13,7 @@ import type { IngredientWithStock, StorageLocation, StorageLocationType } from '
 
 import { useStorageLocations, useUpsertIngredient } from './hooks';
 
+/** Le quantità/soglie dei 3 magazzini, ancora "in bozza" nel form (stringhe perché sono testo digitato). */
 type StockDraft = Record<StorageLocationType, { quantity: string; min_threshold: string }>;
 
 const emptyStock: StockDraft = {
@@ -21,6 +22,12 @@ const emptyStock: StockDraft = {
   pantry: { quantity: '0', min_threshold: '0' },
 };
 
+/**
+ * Modale di creazione/modifica di un ingrediente: nome, unità di misura,
+ * costo unitario, fornitore, e — sezione più particolare — una riga per
+ * ciascuno dei 3 magazzini con quantità attuale e soglia minima d'allarme
+ * (usata altrove dall'app per segnalare le "scorte basse").
+ */
 export function EditIngredientModal({
   visible,
   onClose,
@@ -118,6 +125,7 @@ export function EditIngredientModal({
         </View>
       </View>
 
+      {/* Una riga quantità+soglia minima per ciascuno dei 3 magazzini */}
       <View style={styles.section}>
         <ThemedText type="label" themeColor="textSecondary">
           {t.ingredients.stockByStorage}

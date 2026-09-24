@@ -16,17 +16,37 @@ import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import type { StorageLocationType } from '@/types/database';
 
+/**
+ * PAGINA: Dashboard (rotta "/", prima schermata dopo il login).
+ *
+ * È una vista di riepilogo "a colpo d'occhio": non permette di modificare nulla,
+ * mostra solo numeri e liste calcolati a partire dai dati già caricati da altre
+ * sezioni (ingredienti, ricette, magazzini). Contiene 4 blocchi:
+ * 1. Le 4 statistiche in alto (StatCard): totale ingredienti, totale ricette,
+ *    quanti allarmi di scorte basse ci sono, margine medio delle ricette.
+ * 2. Riepilogo scorte per magazzino (frigo/freezer/dispensa).
+ * 3. Le prime 5 scorte in allarme (sotto la soglia minima impostata).
+ * 4. Le 5 ricette col margine più alto.
+ */
 export default function DashboardScreen() {
   const t = useTranslation();
   const theme = useTheme();
   const { width } = useWindowDimensions();
+  // Sotto la soglia "tablet" la pagina passa da due colonne a una sola (vedi styles.oneColumn).
   const isWide = width >= TabletBreakpoint;
 
   const { data: ingredients = [] } = useIngredients();
   const { data: locations = [] } = useStorageLocations();
   const { data: recipes = [] } = useRecipes();
 
+  /**
+   * Ricalcola tutte le statistiche della dashboard ogni volta che cambiano gli
+   * ingredienti, i magazzini o le ricette (useMemo evita di rifare i calcoli ad
+   * ogni render se i dati non sono cambiati).
+   */
   const stats = useMemo(() => {
+    // Per ogni magazzino, trova gli ingredienti la cui quantità è scesa sotto
+    // (o uguale) alla soglia minima impostata per quel magazzino specifico.
     const lowStockAlerts = locations.flatMap((location) =>
       ingredients
         .filter((ing) => {
@@ -41,9 +61,11 @@ export default function DashboardScreen() {
         }))
     );
 
+    // Margine medio (%) calcolato solo sulle ricette che hanno un prezzo di vendita impostato.
     const marginPcts = recipes.filter((r) => r.sell_price > 0).map((r) => r.marginPct);
     const avgMargin = marginPcts.length > 0 ? marginPcts.reduce((a, b) => a + b, 0) / marginPcts.length : 0;
 
+    // Per ogni magazzino: quanti ingredienti diversi contiene e la quantità totale.
     const stockByStorage = locations.map((location) => {
       const type = location.type as StorageLocationType;
       const withStock = ingredients.filter((ing) => (ing.stock[type]?.quantity ?? 0) > 0);
@@ -51,6 +73,7 @@ export default function DashboardScreen() {
       return { location, itemsCount: withStock.length, totalQuantity };
     });
 
+    // Le 5 ricette più profittevoli (margine in valore assoluto, non percentuale).
     const topRecipes = [...recipes].sort((a, b) => b.margin - a.margin).slice(0, 5);
 
     return { lowStockAlerts, avgMargin, stockByStorage, topRecipes };
@@ -60,6 +83,7 @@ export default function DashboardScreen() {
     <ScrollView contentContainerStyle={styles.scroll}>
       <PageHeader title={t.dashboard.title} subtitle={t.dashboard.subtitle} />
 
+      {/* Riga delle 4 statistiche principali */}
       <View style={styles.statsRow}>
         <StatCard label={t.dashboard.ingredients} value={String(ingredients.length)} icon="box" />
         <StatCard label={t.dashboard.recipes} value={String(recipes.length)} icon="coffee" />
@@ -68,6 +92,7 @@ export default function DashboardScreen() {
       </View>
 
       <View style={[styles.twoColumn, !isWide && styles.oneColumn]}>
+        {/* Colonna sinistra: quantità totale per ogni magazzino */}
         <Card style={styles.flex1}>
           <ThemedText type="sectionTitle" style={styles.cardTitle}>
             {t.dashboard.stockByStorage}
@@ -87,6 +112,7 @@ export default function DashboardScreen() {
           </View>
         </Card>
 
+        {/* Colonna destra: le prime 5 scorte sotto soglia minima, con link alla pagina completa se ce ne sono di più */}
         <Card style={styles.flex1}>
           <ThemedText type="sectionTitle" style={styles.cardTitle}>
             {t.dashboard.lowStockAlerts}
@@ -123,6 +149,7 @@ export default function DashboardScreen() {
         </Card>
       </View>
 
+      {/* Classifica delle ricette più profittevoli */}
       <Card>
         <ThemedText type="sectionTitle" style={styles.cardTitle}>
           {t.dashboard.topRecipesByMargin}

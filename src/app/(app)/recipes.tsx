@@ -22,11 +22,23 @@ import type { ComponentWithCost, RecipeWithVariants } from '@/types/database';
 
 type Tab = 'recipes' | 'components';
 
+/**
+ * PAGINA: Ricette (rotta "/recipes").
+ *
+ * Contiene due sotto-sezioni scelte con i tab in alto ("Ricette" e "Componenti"):
+ * - Ricette: torte/prodotti finiti, con varianti (es. diverse dimensioni) e il
+ *   relativo calcolo di costo/prezzo/margine.
+ * - Componenti: semilavorati riutilizzabili in più ricette (es. una crema o un
+ *   impasto base preparato in una quantità e poi usato a "porzioni" in più torte).
+ * Questo file fa solo da guscio: sceglie il tab e la barra di ricerca, poi
+ * delega il contenuto vero e proprio a RecipesTab o ComponentsTab.
+ */
 export default function RecipesScreen() {
   const t = useTranslation();
   const theme = useTheme();
   const [tab, setTab] = useState<Tab>('recipes');
   const [search, setSearch] = useState('');
+  // 'new' = si sta creando una nuova voce, un oggetto = si sta modificando quella voce, null = modale chiusa.
   const [editingRecipe, setEditingRecipe] = useState<RecipeWithVariants | null | 'new'>(null);
   const [editingComponent, setEditingComponent] = useState<ComponentWithCost | null | 'new'>(null);
 
@@ -67,6 +79,7 @@ export default function RecipesScreen() {
   );
 }
 
+/** Sotto-sezione "Ricette": elenco a righe espandibili (RecipeRow) + modale di modifica/creazione. */
 function RecipesTab({
   search,
   editing,
@@ -79,10 +92,13 @@ function RecipesTab({
   const t = useTranslation();
   const { data: recipes = [], isLoading } = useRecipes();
   const deleteRecipe = useDeleteRecipe();
+  // Id della ricetta attualmente "aperta" (dettagli visibili). Solo una alla volta.
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
+  // Filtro testuale semplice sul nome, case-insensitive.
   const filtered = recipes.filter((r) => r.name.toLowerCase().includes(search.toLowerCase()));
 
+  /** Chiede conferma con un Alert nativo prima di eliminare davvero la ricetta. */
   const handleDelete = (recipe: RecipeWithVariants) => {
     Alert.alert(t.recipes.delete, t.recipes.deleteConfirm, [
       { text: t.recipes.cancel, style: 'cancel' },
@@ -118,6 +134,7 @@ function RecipesTab({
   );
 }
 
+/** Sotto-sezione "Componenti": elenco semplice (non espandibile) + modale di modifica/creazione. */
 function ComponentsTab({
   search,
   editing,
@@ -169,6 +186,7 @@ function ComponentsTab({
                   <IconButton icon="trash-2" color="danger" onPress={() => handleDelete(item)} />
                 </View>
               </View>
+              {/* Elenco ingredienti che compongono questo semilavorato (se presenti) */}
               {item.ingredients.length > 0 && (
                 <View style={[styles.details, { borderTopColor: theme.border }]}>
                   {item.ingredients.map((ci) => (
@@ -188,6 +206,12 @@ function ComponentsTab({
   );
 }
 
+/**
+ * Una riga della lista ricette: intestazione sempre visibile (categoria, nome,
+ * costo/prezzo/margine, pulsanti modifica/elimina) + dettagli che si aprono e
+ * chiudono cliccando sulla riga (descrizione e, per ogni variante, gli ingredienti
+ * che la compongono con relative quantità).
+ */
 function RecipeRow({
   recipe,
   expanded,
@@ -208,6 +232,7 @@ function RecipeRow({
     <Card>
       <Pressable onPress={onToggle} style={styles.headerRow}>
         <View style={styles.headerLeft}>
+          {/* Freccina che ruota di 90° quando la riga è espansa, come indicatore visivo */}
           <Feather
             name="chevron-right"
             size={16}
@@ -251,12 +276,17 @@ function RecipeRow({
               {recipe.description}
             </ThemedText>
           )}
+          {/* Ogni ricetta può avere più varianti (es. "piccola"/"grande"): ognuna con
+              il proprio peso, numero di porzioni, costo e la propria lista ingredienti. */}
           {recipe.variants.map((variant) => (
             <View key={variant.id} style={styles.variantBlock}>
               <ThemedText type="smallBold">
                 {variant.label} — {variant.total_weight}g · {variant.portions} {t.recipes.portions.toLowerCase()} · €{variant.cost.toFixed(2)}
               </ThemedText>
               {variant.ingredients.map((line) => {
+                // Ogni riga ingrediente della variante punta ALTERNATIVAMENTE a un
+                // ingrediente "semplice" oppure a un componente/semilavorato: si usa
+                // quello dei due che è presente.
                 const source = line.ingredient ?? line.component;
                 if (!source) return null;
                 return (

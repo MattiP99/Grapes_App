@@ -11,6 +11,7 @@ import {
   type WorkPlanTaskFormValues,
 } from './api';
 
+/** Task del giorno `date`. Nota: la queryKey include la data, quindi ogni giorno ha la sua cache separata. */
 export function useWorkPlanTasks(date: string) {
   const { user } = useAuth();
   return useQuery({
@@ -37,6 +38,7 @@ export function useDeleteWorkPlanTask(date: string) {
   });
 }
 
+/** Completa un task di produzione: invalida i task del giorno E tutte le scorte che possono essere cambiate (ingredienti, componenti, varianti). */
 export function useCompleteWorkPlanTask(date: string) {
   const queryClient = useQueryClient();
   return useMutation({

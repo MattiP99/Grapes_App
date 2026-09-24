@@ -4,6 +4,16 @@ import { StyleSheet, TextInput, View } from 'react-native';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * Campo di ricerca con icona a lente d'ingrandimento, usato nelle pagine con
+ * elenchi lunghi (Ricette, Ingredienti) per filtrare per nome.
+ *
+ * `flexGrow`/`flexBasis`/`minWidth` nello stile del contenitore non sono
+ * decorativi: senza di essi, quando questo componente stava in riga insieme
+ * ai tab di `SegmentedTabs`, su schermi stretti collassava a larghezza zero
+ * (il vero campo di testo diventava non toccabile, restava visibile solo
+ * l'icona) — con queste regole si garantisce sempre uno spazio minimo utilizzabile.
+ */
 export function SearchInput({
   value,
   onChangeText,
@@ -38,6 +48,9 @@ const styles = StyleSheet.create({
     borderRadius: Radii.medium,
     paddingHorizontal: Spacing.three,
     height: 42,
+    flexGrow: 1,
+    flexBasis: 200,
+    minWidth: 160,
   },
   input: {
     flex: 1,

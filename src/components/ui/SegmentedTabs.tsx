@@ -4,6 +4,15 @@ import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * Selettore "a tab" orizzontale (es. Ricette/Componenti, Tutti/Frigo/Freezer/Dispensa,
+ * Mese/Settimana/Giorno) — solo una opzione selezionabile alla volta,
+ * evidenziata con sfondo e bordo diversi. Racchiuso in uno ScrollView
+ * orizzontale nel caso le opzioni non entrino tutte nella larghezza disponibile.
+ * `style={styles.scroll}` con `flexGrow: 0` impedisce a questo componente di
+ * "allargarsi" oltre il necessario e schiacciare altri elementi nella stessa
+ * riga (es. `SearchInput` quando compaiono affiancati).
+ */
 export function SegmentedTabs<T extends string>({
   value,
   options,
@@ -16,7 +25,11 @@ export function SegmentedTabs<T extends string>({
   const theme = useTheme();
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.container}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      style={styles.scroll}
+      contentContainerStyle={styles.container}>
       {options.map((option) => {
         const active = option.value === value;
         return (
@@ -39,6 +52,7 @@ export function SegmentedTabs<T extends string>({
 }
 
 const styles = StyleSheet.create({
+  scroll: { flexGrow: 0, flexShrink: 0 },
   container: { flexDirection: 'row', gap: Spacing.one },
   tab: {
     paddingHorizontal: Spacing.three,

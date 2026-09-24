@@ -15,8 +15,18 @@ import type { ProductionType } from '@/types/database';
 import type { WorkPlanTaskWithDetails } from './api';
 import { useUpsertWorkPlanTask } from './hooks';
 
+// 'none' in più rispetto a ProductionType: rappresenta "task semplice, non è una produzione".
 type ProductionChoice = 'none' | ProductionType;
 
+/**
+ * Modale di creazione/modifica di un task del Piano di lavoro. Il pezzo
+ * centrale del form è la scelta "Legato a una produzione?":
+ * - "No, task semplice": basta un titolo (e note opzionali).
+ * - "Componente": bisogna scegliere quale componente/semilavorato produrre.
+ * - "Variante di ricetta": bisogna scegliere quale variante produrre.
+ * Per queste ultime due si aggiungono anche quantità da produrre e magazzino
+ * di destinazione, obbligatori per poter salvare.
+ */
 export function EditWorkPlanTaskModal({
   visible,
   onClose,
@@ -42,6 +52,8 @@ export function EditWorkPlanTaskModal({
   const [quantity, setQuantity] = useState('');
   const [targetLocationId, setTargetLocationId] = useState<string | null>(null);
 
+  // "Appiattisce" tutte le varianti di tutte le ricette in un'unica lista per
+  // il menu a tendina, con etichetta "NomeRicetta — NomeVariante" per distinguerle.
   const variantOptions = useMemo(
     () => recipes.flatMap((r) => r.variants.map((v) => ({ label: `${r.name} — ${v.label}`, value: v.id }))),
     [recipes]
@@ -69,6 +81,8 @@ export function EditWorkPlanTaskModal({
   }, [visible, task, locations]);
 
   const isProduction = productionChoice !== 'none';
+  // Un task semplice richiede solo il titolo; un task di produzione richiede
+  // anche componente/variante scelti, una quantità positiva e un magazzino di destinazione.
   const canSave =
     title.trim().length > 0 &&
     (!isProduction ||
@@ -116,6 +130,7 @@ export function EditWorkPlanTaskModal({
         onChange={(v) => setProductionChoice(v as ProductionChoice)}
       />
 
+      {/* Il secondo selettore compare solo dopo aver scelto il TIPO di produzione, mai entrambi insieme */}
       {productionChoice === 'component' && (
         <Select
           label={t.recipes.componentSource}

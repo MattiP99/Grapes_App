@@ -4,6 +4,12 @@ import { StyleSheet, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 
+/**
+ * Intestazione standard usata in cima a QUASI TUTTE le pagine dell'app: un
+ * titolo grande, un sottotitolo opzionale, e a destra uno slot libero
+ * (`action`) dove ogni pagina metti il proprio pulsante principale (es. "+
+ * Nuovo ordine") o i propri filtri.
+ */
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
     <View style={styles.container}>

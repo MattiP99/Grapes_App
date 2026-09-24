@@ -4,6 +4,7 @@ import { Fonts, TabletBreakpoint, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 export type ThemedTextProps = TextProps & {
+  /** Stile testuale predefinito (dimensione/peso/font), scelto da un piccolo set fisso invece di stili liberi. */
   type?:
     | 'default'
     | 'pageTitle'
@@ -14,12 +15,20 @@ export type ThemedTextProps = TextProps & {
     | 'label'
     | 'link'
     | 'code';
+  /** Colore preso dal tema attivo (chiaro/scuro) invece di un colore fisso — cambia da solo cambiando tema. */
   themeColor?: ThemeColor;
 };
 
 /** Riduce leggermente il testo sotto la soglia tablet, dove lo spazio è più stretto. */
 const MOBILE_FONT_SCALE = 0.92;
 
+/**
+ * Il componente `Text` usato ovunque nell'app al posto del `Text` nativo di
+ * React Native: applica automaticamente il colore giusto per il tema
+ * corrente e uno dei pochi stili testuali predefiniti (`type`), così ogni
+ * pagina resta visivamente coerente con le altre senza dover ripetere le
+ * stesse dimensioni/font ovunque.
+ */
 export function ThemedText({ style, type = 'default', themeColor, ...rest }: ThemedTextProps) {
   const theme = useTheme();
   const { width } = useWindowDimensions();
@@ -32,6 +41,9 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
       style={[
         { color: theme[themeColor ?? 'text'] },
         base,
+        // Sotto la soglia "tablet" il testo si riduce leggermente (vedi MOBILE_FONT_SCALE):
+        // applicato DOPO lo stile base così lo sovrascrive, ma PRIMA di `style` così l'eventuale
+        // stile passato dal chiamante ha sempre l'ultima parola.
         isMobile && { fontSize: base.fontSize * MOBILE_FONT_SCALE, lineHeight: base.lineHeight * MOBILE_FONT_SCALE },
         style,
       ]}

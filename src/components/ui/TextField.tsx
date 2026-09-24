@@ -6,9 +6,16 @@ import { useTheme } from '@/hooks/use-theme';
 
 interface TextFieldProps extends TextInputProps {
   label?: string;
+  /** Testo informativo mostrato sotto il campo (es. "quante unità produce un'infornata"). */
   hint?: string;
 }
 
+/**
+ * Campo di testo standard dell'app: etichetta opzionale sopra, input
+ * stilizzato secondo il tema, suggerimento opzionale sotto. Accetta tutte le
+ * altre proprietà di un TextInput normale di React Native (keyboardType,
+ * multiline, secureTextEntry, ecc.), passate direttamente con `...rest`.
+ */
 export function TextField({ label, hint, style, ...rest }: TextFieldProps) {
   const theme = useTheme();
 

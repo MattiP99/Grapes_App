@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/Card';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/** Riquadro statistico usato nella Dashboard: etichetta + icona in alto, valore grande sotto. */
 export function StatCard({
   label,
   value,

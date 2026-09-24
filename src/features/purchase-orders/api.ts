@@ -10,6 +10,7 @@ export interface PurchaseOrderWithItems extends PurchaseOrder {
   items: PurchaseOrderItemWithIngredient[];
 }
 
+/** Tutti gli ordini fornitore, dal più recente al più vecchio, ciascuno con le sue righe prodotto. */
 export async function fetchPurchaseOrders(): Promise<PurchaseOrderWithItems[]> {
   const { data: orders, error } = await supabase.from('purchase_orders').select('*').order('order_date', { ascending: false });
   if (error) throw error;
@@ -34,6 +35,7 @@ export interface PurchaseOrderItemDraft {
   unit_cost: number | null;
 }
 
+/** Dati del form di creazione/modifica ordine fornitore (vedi EditPurchaseOrderModal). */
 export interface PurchaseOrderFormValues {
   id?: string;
   supplier: string;
@@ -44,6 +46,7 @@ export interface PurchaseOrderFormValues {
   items: PurchaseOrderItemDraft[];
 }
 
+/** Crea o aggiorna un ordine fornitore e riscrive da zero le sue righe prodotto. */
 export async function upsertPurchaseOrder(owner_id: string, values: PurchaseOrderFormValues) {
   const { data: order, error } = await supabase
     .from('purchase_orders')
@@ -76,6 +79,13 @@ export async function deletePurchaseOrder(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Segna l'ordine come "arrivato". Come per `moveStock`, questa operazione
+ * chiama una funzione del database ("receive_purchase_order", vedi
+ * supabase/schema.sql) che in un colpo solo cambia lo stato dell'ordine E
+ * aggiunge le quantità acquistate alle scorte dei magazzini di destinazione —
+ * tutto o niente, per non rischiare di aggiornare solo una delle due cose.
+ */
 export async function receivePurchaseOrder(id: string) {
   const { error } = await supabase.rpc('receive_purchase_order', { p_order_id: id });
   if (error) throw error;

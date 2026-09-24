@@ -13,10 +13,20 @@ import {
   type IngredientFormValues,
 } from './api';
 
+/**
+ * Questo file adatta le funzioni "grezze" di `api.ts` (chiamate dirette a
+ * Supabase) al mondo di React Query: ogni `useQuery` gestisce da solo cache,
+ * stato di caricamento ed errori; ogni `useMutation` esegue una scrittura e
+ * poi invalida le query che potrebbero essere diventate "vecchie" a causa di
+ * quella scrittura, così la UI si aggiorna da sola senza bisogno di ricaricare
+ * manualmente la pagina.
+ */
+
 export function useStorageLocations() {
   const { user } = useAuth();
   return useQuery({
     queryKey: queryKeys.storageLocations,
+    // `enabled: !!user` evita di interrogare Supabase prima che ci sia un utente loggato.
     enabled: !!user,
     queryFn: fetchStorageLocations,
   });
@@ -31,6 +41,7 @@ export function useIngredients() {
   });
 }
 
+/** Scorciatoia per invalidare (= "segna come da ricaricare") la lista ingredienti. */
 function useInvalidateIngredients() {
   const queryClient = useQueryClient();
   return () => queryClient.invalidateQueries({ queryKey: queryKeys.ingredients });
@@ -46,7 +57,8 @@ export function useUpsertIngredient() {
     mutationFn: (values: IngredientFormValues) => upsertIngredient(user!.id, values, locations as StorageLocation[]),
     onSuccess: () => {
       invalidate();
-      // il costo/unità di un ingrediente incide sul costo di componenti e ricette che lo usano
+      // Il costo/unità di un ingrediente incide sul costo dei componenti e delle
+      // ricette che lo usano, quindi vanno ricalcolati anche loro.
       queryClient.invalidateQueries({ queryKey: queryKeys.components });
       queryClient.invalidateQueries({ queryKey: queryKeys.recipes });
     },

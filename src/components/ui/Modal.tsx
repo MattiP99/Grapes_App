@@ -6,6 +6,14 @@ import { ThemedText } from '@/components/themed-text';
 import { Radii, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * La finestra di dialogo standard usata da TUTTE le modali di
+ * creazione/modifica dell'app (ordini, ricette, ingredienti, ecc.):
+ * titolo + pulsante "x" in alto, contenuto scorrevole al centro (`children`,
+ * per form lunghi che non ci stanno tutti in uno schermo), pulsanti di azione
+ * in fondo (`footer`, tipicamente "Annulla" + "Salva"). `maxWidth` permette a
+ * modali particolarmente ricche di contenuto (es. l'ordine) di essere più larghe del default.
+ */
 export function AppModal({
   visible,
   onClose,
@@ -25,6 +33,8 @@ export function AppModal({
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      {/* Toccare lo sfondo scuro chiude la modale; toccare la card stessa non deve
+          propagare il tocco al backdrop (altrimenti si chiuderebbe cliccando qualsiasi campo). */}
       <Pressable style={styles.backdrop} onPress={onClose}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

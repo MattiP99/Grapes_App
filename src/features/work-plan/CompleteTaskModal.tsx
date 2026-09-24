@@ -11,6 +11,14 @@ import { useTranslation } from '@/i18n';
 import type { WorkPlanTaskWithDetails } from './api';
 import { useCompleteWorkPlanTask } from './hooks';
 
+/**
+ * Piccola modale di conferma mostrata quando si spunta un task di produzione
+ * (componente o variante di ricetta) nel Piano di lavoro. Chiede solo UNA
+ * cosa: da quale magazzino prelevare gli ingredienti necessari — tutto il
+ * resto (quali ingredienti, quanti, dove va il prodotto finito) è già deciso
+ * dal task stesso. Alla conferma, `useCompleteWorkPlanTask` fa scalare gli
+ * ingredienti e aggiunge il prodotto finito alle scorte.
+ */
 export function CompleteTaskModal({
   visible,
   onClose,
@@ -19,6 +27,7 @@ export function CompleteTaskModal({
 }: {
   visible: boolean;
   onClose: () => void;
+  /** null quando la modale è chiusa (nessun task da completare). */
   task: WorkPlanTaskWithDetails | null;
   date: string;
 }) {
@@ -27,6 +36,7 @@ export function CompleteTaskModal({
   const complete = useCompleteWorkPlanTask(date);
   const [sourceLocationId, setSourceLocationId] = useState<string | null>(null);
 
+  // Ogni volta che si apre, riparte dal primo magazzino disponibile come scelta di default.
   useEffect(() => {
     if (visible) setSourceLocationId(locations[0]?.id ?? null);
   }, [visible, locations]);
@@ -39,6 +49,8 @@ export function CompleteTaskModal({
       await complete.mutateAsync({ taskId: task.id, sourceLocationId });
       onClose();
     } catch (err: any) {
+      // Puo' fallire, ad esempio, se non ci sono abbastanza ingredienti nel
+      // magazzino scelto: il messaggio d'errore del database viene mostrato direttamente.
       Alert.alert(t.workPlan.completeError, err?.message ?? t.common.error);
     }
   };

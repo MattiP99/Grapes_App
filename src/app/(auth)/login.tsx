@@ -10,6 +10,14 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { AuthScreenLayout } from '@/features/auth/AuthScreenLayout';
 import { useTranslation } from '@/i18n';
 
+/**
+ * PAGINA: Login (rotta "/login").
+ *
+ * Prima schermata che vede chi non ha ancora fatto login (vedi la logica in
+ * `src/app/_layout.tsx`, che decide se mostrare le pagine dell'app o quelle di
+ * autenticazione in base alla presenza di una sessione Supabase). Form minimo:
+ * email + password, pulsante "Accedi" e link per andare alla registrazione.
+ */
 export default function LoginScreen() {
   const t = useTranslation();
   const { signIn } = useAuth();
@@ -18,6 +26,7 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Tenta il login con Supabase; se fallisce mostra un messaggio d'errore generico (per non svelare se è l'email o la password ad essere sbagliata). */
   const handleSubmit = async () => {
     setError(null);
     setLoading(true);

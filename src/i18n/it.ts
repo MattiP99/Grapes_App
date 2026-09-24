@@ -1,5 +1,14 @@
 import type { TranslationSchema } from './en';
 
+/**
+ * Dizionario italiano: ogni chiave corrisponde a UNA stringa mostrata da
+ * qualche parte nell'app (raggruppate per pagina/sezione, es. `t.orders.title`).
+ * La struttura (l'elenco di chiavi) è definita da `TranslationSchema` in
+ * `en.ts` — TypeScript segnala un errore qui se manca una chiave o se ne
+ * viene aggiunta una che `en.ts` non ha, così le due lingue restano sempre allineate.
+ * Per aggiungere una nuova stringa: aggiungerla prima in `en.ts` (che fa da
+ * "schema"), poi qui con la traduzione italiana.
+ */
 export const it: TranslationSchema = {
   nav: {
     dashboard: 'Dashboard',

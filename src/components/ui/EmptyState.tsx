@@ -5,6 +5,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/** Messaggio "non c'è ancora nulla qui" con un'icona, mostrato al posto di liste vuote in tutta l'app. */
 export function EmptyState({ icon = 'inbox', message }: { icon?: keyof typeof Feather.glyphMap; message: string }) {
   const theme = useTheme();
 

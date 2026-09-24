@@ -14,6 +14,7 @@ export function useComponents() {
   });
 }
 
+/** Componenti con relativo stock, usati dal Piano di lavoro per scegliere cosa produrre. */
 export function useComponentsWithStock() {
   const { user } = useAuth();
   return useQuery({
@@ -30,7 +31,7 @@ export function useUpsertComponent() {
     mutationFn: (values: ComponentFormValues) => upsertComponent(user!.id, values),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.components });
-      // il costo/unità di un componente incide sul costo delle ricette che lo usano
+      // Il costo di un componente incide sul costo delle ricette che lo usano.
       queryClient.invalidateQueries({ queryKey: queryKeys.recipes });
     },
   });

@@ -11,18 +11,32 @@ import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import type { IngredientWithStock, StorageLocationType } from '@/types/database';
 
+/** Una riga della lista: un ingrediente sotto soglia in un magazzino specifico. */
 interface LowStockRow {
   ingredient: IngredientWithStock;
   quantity: number;
   minThreshold: number;
 }
 
+/**
+ * PAGINA: Scorte basse (rotta "/low-stock").
+ *
+ * Versione "espansa" dell'allarme che si vede in anteprima nella Dashboard:
+ * qui si vedono TUTTI gli ingredienti sotto la soglia minima impostata, non
+ * solo i primi 5. Sono raggruppati per magazzino (una sezione per Frigo,
+ * Freezer, Dispensa — solo se quel magazzino ha effettivamente qualcosa in
+ * allarme). Pagina di sola lettura: da qui non si modifica nulla, per farlo
+ * bisogna andare nella pagina Ingredienti.
+ */
 export default function LowStockScreen() {
   const t = useTranslation();
   const theme = useTheme();
   const { data: ingredients = [], isLoading } = useIngredients();
   const { data: locations = [] } = useStorageLocations();
 
+  // Costruisce le "sezioni" per la SectionList: una per magazzino, con dentro
+  // solo gli ingredienti che in QUEL magazzino sono scesi sotto la soglia minima.
+  // I magazzini senza nessun allarme vengono scartati (niente sezioni vuote).
   const sections = locations
     .map((location) => {
       const rows: LowStockRow[] = ingredients

@@ -42,6 +42,7 @@ export function useDeletePurchaseOrder() {
   });
 }
 
+/** Segna un ordine come arrivato: oltre agli ordini, invalida anche ingredienti (le scorte sono cambiate) e lo storico costi. */
 export function useReceivePurchaseOrder() {
   const invalidate = useInvalidatePurchaseOrders();
   const queryClient = useQueryClient();

@@ -7,6 +7,21 @@ import { Sidebar } from '@/components/layout/Sidebar';
 import { MaxContentWidth, Spacing, TabletBreakpoint } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * Decide come inquadrare le pagine dell'app in base alla larghezza dello
+ * schermo — è il punto in cui l'intera app diventa "responsive":
+ * - Largo (tablet/desktop): sidebar fissa a sinistra + contenuto centrato
+ *   con una larghezza massima (`MaxContentWidth`, per non avere righe di
+ *   testo troppo lunghe su schermi molto larghi).
+ * - Stretto (telefono): niente sidebar, si usa invece `BottomTabBar` in
+ *   fondo, e il contenuto occupa tutto lo schermo disponibile.
+ * `<Slot />` è il segnaposto di Expo Router dove viene inserita la pagina
+ * effettivamente attiva (Dashboard, Ordini, ecc.) — questo componente non sa
+ * né gli importa QUALE pagina sia, si occupa solo dell'impalcatura attorno.
+ * Nota: questo componente NON avvolge le pagine in uno scroll — ogni singola
+ * pagina deve gestire il proprio scorrimento (di solito con `ScrollView`) se
+ * il suo contenuto rischia di non entrare tutto sullo schermo.
+ */
 export function AppShell() {
   const { width } = useWindowDimensions();
   const theme = useTheme();

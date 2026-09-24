@@ -6,8 +6,12 @@ import type { Language } from '@/types/database';
 import { en, type TranslationSchema } from './en';
 import { it } from './it';
 
+// I due "dizionari" di traduzioni: aggiungere una lingua significa creare un
+// nuovo file come it.ts/en.ts (stessa struttura, "TranslationSchema") e
+// registrarlo qui.
 const dictionaries: Record<Language, TranslationSchema> = { en, it };
 
+/** Lingua di partenza se l'utente non ne ha mai scelta una: italiano se il dispositivo è impostato in italiano, altrimenti inglese. */
 function detectDeviceLanguage(): Language {
   const tag = Localization.getLocales()[0]?.languageCode;
   return tag === 'it' ? 'it' : 'en';
@@ -21,6 +25,13 @@ interface I18nContextValue {
 
 const I18nContext = createContext<I18nContextValue | null>(null);
 
+/**
+ * Fornisce a tutta l'app la lingua attiva e le stringhe tradotte
+ * corrispondenti (`t`), montato una sola volta nel layout radice. `setLanguage`
+ * cambia la lingua SOLO localmente in questo Provider: chi vuole anche
+ * salvarla sul profilo Supabase (es. SettingsScreen) deve chiamare in più
+ * l'apposita mutation, oppure passare `onLanguageChange` qui.
+ */
 export function I18nProvider({
   children,
   initialLanguage,

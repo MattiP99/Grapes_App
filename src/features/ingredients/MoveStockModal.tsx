@@ -14,6 +14,11 @@ import type { IngredientWithStock } from '@/types/database';
 
 import { useMoveStock, useStorageLocations } from './hooks';
 
+/**
+ * Modale per spostare una quantità di un ingrediente da un magazzino a un
+ * altro (es. scongelare qualcosa dal freezer alla dispensa). Aperta dal
+ * pulsante "repeat" nella pagina Ingredienti.
+ */
 export function MoveStockModal({
   visible,
   onClose,
@@ -21,6 +26,7 @@ export function MoveStockModal({
 }: {
   visible: boolean;
   onClose: () => void;
+  /** null quando la modale è chiusa. */
   ingredient: IngredientWithStock | null;
 }) {
   const t = useTranslation();
@@ -32,6 +38,11 @@ export function MoveStockModal({
   const [toId, setToId] = useState<string | null>(null);
   const [quantity, setQuantity] = useState('');
 
+  /**
+   * Ogni volta che si apre, sceglie come default: "da" il primo magazzino che
+   * ha effettivamente scorta di questo ingrediente (altrimenti non avrebbe
+   * senso spostarne da lì), "a" il primo magazzino diverso da quello.
+   */
   useEffect(() => {
     if (!visible || !ingredient || locations.length === 0) return;
     const withStock = locations.find((l) => (ingredient.stock[l.type]?.quantity ?? 0) > 0);
@@ -45,6 +56,7 @@ export function MoveStockModal({
   if (!ingredient) return null;
 
   const fromLocation = locations.find((l) => l.id === fromId);
+  // Non si può spostare più di quanto sia effettivamente disponibile nel magazzino di partenza.
   const maxQuantity = fromLocation ? ingredient.stock[fromLocation.type]?.quantity ?? 0 : 0;
   const parsedQuantity = Number(quantity.replace(',', '.')) || 0;
   const canMove = !!fromId && !!toId && fromId !== toId && parsedQuantity > 0 && parsedQuantity <= maxQuantity;
@@ -82,6 +94,7 @@ export function MoveStockModal({
         <View style={styles.flex1}>
           <Select
             label={t.ingredients.to}
+            // Il magazzino di destinazione non può essere lo stesso di partenza, quindi viene escluso dalle opzioni.
             value={toId}
             options={locations.filter((l) => l.id !== fromId).map((l) => ({ label: l.name, value: l.id }))}
             onChange={setToId}

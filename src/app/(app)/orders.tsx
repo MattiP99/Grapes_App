@@ -30,6 +30,7 @@ function getStatusColors(theme: ReturnType<typeof useTheme>): Record<OrderStatus
   };
 }
 
+// Colore del badge di stato per ogni possibile stato di un ordine.
 const STATUS_TONES: Record<OrderStatus, BadgeTone> = {
   pending: 'warning',
   confirmed: 'info',
@@ -42,6 +43,18 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * PAGINA: Ordini (rotta "/orders").
+ *
+ * Il cuore della gestione ordini: un calendario (mese/settimana/giorno, vedi
+ * `OrderCalendarGrid`) più due liste laterali — "gli ordini del giorno
+ * selezionato" e "i prossimi 6 ordini in arrivo". Cliccando su un giorno o su
+ * un ordine nel calendario si apre `EditOrderModal` per aggiungere/modificare.
+ *
+ * Layout responsive: su schermi larghi (tablet/desktop) calendario e liste
+ * stanno affiancati (calendario più largo, 2/3 dello spazio), su mobile sono
+ * impilati in verticale e si scorre con la pagina intera.
+ */
 export default function OrdersScreen() {
   const t = useTranslation();
   const theme = useTheme();
@@ -51,11 +64,18 @@ export default function OrdersScreen() {
   const { data: orders = [], isLoading } = useOrders();
   const deleteOrder = useDeleteOrder();
 
+  // Giorno evidenziato/selezionato nel calendario (guida cosa mostrare nel pannello "Seleziona un giorno").
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
+  // 'new' = si sta creando un nuovo ordine, un oggetto = si sta modificando quell'ordine, null = modale chiusa.
   const [editing, setEditing] = useState<OrderWithRecipe | null | 'new'>(null);
+  // Data "di riferimento" del calendario: per la vista Mese è il mese mostrato,
+  // per Settimana la settimana, per Giorno il giorno esatto (vedi OrderCalendarGrid).
   const [viewDate, setViewDate] = useState(() => new Date());
+  // Su mobile si parte dalla vista Settimana (più leggibile sullo schermo piccolo),
+  // su schermi larghi dalla vista Mese (più informazioni visibili in un colpo d'occhio).
   const [viewMode, setViewMode] = useState<CalendarViewMode>(() => (isWide ? 'month' : 'week'));
 
+  /** Raggruppa tutti gli ordini per data di ritiro, per un accesso rapido "che ordini ci sono in questo giorno?". */
   const ordersByDate = useMemo(() => {
     const map = new Map<string, OrderWithRecipe[]>();
     for (const order of orders) {
@@ -68,6 +88,7 @@ export default function OrdersScreen() {
 
   const statusColors = useMemo(() => getStatusColors(theme), [theme]);
 
+  // I prossimi 6 ordini non ancora consegnati/annullati, in ordine di data di ritiro.
   const upcoming = useMemo(
     () =>
       [...orders]
@@ -79,6 +100,13 @@ export default function OrdersScreen() {
 
   const selectedDayOrders = selectedDate ? ordersByDate.get(selectedDate) ?? [] : [];
 
+  /**
+   * Gestisce il click su una CELLA del calendario (usato dalla vista Mese):
+   * seleziona sempre il giorno, e in più apre subito la modale se il giorno
+   * ha esattamente un ordine (modifica diretta) o nessuno (crea subito un nuovo
+   * ordine per quella data). Se ce ne sono più di uno, si sceglie dal pannello
+   * laterale "Seleziona un giorno" invece di indovinare quale aprire.
+   */
   const handleDayPress = (dateIso: string) => {
     setSelectedDate(dateIso);
     const dayOrders = ordersByDate.get(dateIso) ?? [];
@@ -89,11 +117,13 @@ export default function OrdersScreen() {
     }
   };
 
+  /** Click su un ordine specifico (usato dalle viste Settimana/Giorno, dove ogni ordine è già visibile per nome): apre direttamente la modifica. */
   const handleOrderPress = (order: OrderWithRecipe) => {
     setSelectedDate(order.pickup_date);
     setEditing(order);
   };
 
+  /** Click sul pulsante "+" di un giorno (viste Settimana/Giorno): apre la modale per creare un nuovo ordine su quella data. */
   const handleAddForDate = (dateIso: string) => {
     setSelectedDate(dateIso);
     setEditing('new');
@@ -121,6 +151,7 @@ export default function OrdersScreen() {
       />
 
       <View style={[styles.body, !isWide && styles.bodyNarrow]}>
+        {/* Blocco calendario: tab Mese/Settimana/Giorno + la griglia/agenda vera e propria */}
         <Card style={[styles.calendarCard, isWide && styles.calendarCardWide]}>
           <SegmentedTabs
             value={viewMode}
@@ -145,6 +176,7 @@ export default function OrdersScreen() {
           />
         </Card>
 
+        {/* Pannello laterale: ordini del giorno selezionato + prossimi ordini in arrivo */}
         <View style={[styles.sidePanel, isWide && styles.sidePanelWide]}>
           <Card>
             <ThemedText type="sectionTitle" style={styles.sectionTitle}>
@@ -197,6 +229,7 @@ export default function OrdersScreen() {
   );
 }
 
+/** Una riga ordine (usata sia nel pannello "giorno selezionato" che in "in arrivo"): torta, cliente, data, ricetta collegata, stato, azioni. */
 function OrderListItem({ order, onEdit, onDelete }: { order: OrderWithRecipe; onEdit: () => void; onDelete: () => void }) {
   const t = useTranslation();
 

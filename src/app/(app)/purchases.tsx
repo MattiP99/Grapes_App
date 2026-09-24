@@ -17,12 +17,25 @@ import { useTheme } from '@/hooks/use-theme';
 import { useTranslation } from '@/i18n';
 import type { PurchaseOrderStatus } from '@/types/database';
 
+// Colore del badge di stato per ogni possibile stato di un ordine fornitore.
 const STATUS_TONES: Record<PurchaseOrderStatus, BadgeTone> = {
   ordered: 'warning',
   arrived: 'success',
   cancelled: 'neutral',
 };
 
+/**
+ * PAGINA: Acquisti (rotta "/purchases").
+ *
+ * Elenco degli ordini fatti ai fornitori. Ogni ordine ha uno stato:
+ * "ordered" (ordinato, in attesa) → "arrived" (arrivato) oppure "cancelled".
+ * Quando un ordine "ordered" viene segnato come arrivato (handleReceive), le
+ * quantità acquistate vengono automaticamente aggiunte alle scorte di magazzino
+ * (questa logica vive nel backend/hook `useReceivePurchaseOrder`, qui si gestisce
+ * solo la conferma e l'eventuale messaggio di errore).
+ * Un ordine "arrived" non può più essere modificato né segnato come ricevuto di
+ * nuovo (i pulsanti relativi compaiono solo per gli ordini "ordered").
+ */
 export default function PurchasesScreen() {
   const t = useTranslation();
   const theme = useTheme();
@@ -39,6 +52,7 @@ export default function PurchasesScreen() {
     ]);
   };
 
+  /** Segna l'ordine come "arrivato": chiede conferma, poi aggiorna lo stato e le scorte. */
   const handleReceive = (order: PurchaseOrderWithItems) => {
     Alert.alert(t.purchases.markArrived, t.purchases.markArrivedConfirm, [
       { text: t.recipes.cancel, style: 'cancel' },
@@ -89,6 +103,7 @@ export default function PurchasesScreen() {
                   <ThemedText type="small" themeColor="textSecondary">
                     {item.order_date}
                   </ThemedText>
+                  {/* "Segna arrivato" e "Modifica" sono disponibili solo mentre l'ordine è ancora "ordered" */}
                   {item.status === 'ordered' && (
                     <IconButton icon="check-circle" color="success" onPress={() => handleReceive(item)} />
                   )}
@@ -97,6 +112,7 @@ export default function PurchasesScreen() {
                 </View>
               </View>
 
+              {/* Righe prodotto dell'ordine: ingrediente, quantità, magazzino di destinazione, costo unitario */}
               <View style={styles.itemsBlock}>
                 {item.items.map((purchaseItem) => (
                   <ThemedText key={purchaseItem.id} type="small" themeColor="textSecondary">

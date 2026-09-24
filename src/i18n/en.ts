@@ -1,3 +1,10 @@
+/**
+ * Dizionario inglese — funge anche da "schema" di riferimento: la sua forma
+ * (l'insieme di chiavi/sotto-chiavi, vedi `TranslationSchema` in fondo al
+ * file) è quella che il dizionario italiano (`it.ts`) deve rispettare
+ * esattamente. Le chiavi sono raggruppate per pagina/sezione (`nav`, `orders`,
+ * `recipes`, ...) così è facile trovare le stringhe di una pagina specifica.
+ */
 export const en = {
   nav: {
     dashboard: 'Dashboard',
@@ -224,4 +231,5 @@ export const en = {
   },
 };
 
+/** La "forma" del dizionario (tutte le chiavi/sotto-chiavi), ricavata automaticamente da `en`: qualsiasi altra lingua deve avere esattamente le stesse chiavi. */
 export type TranslationSchema = typeof en;

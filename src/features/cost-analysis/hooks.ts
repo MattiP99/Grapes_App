@@ -5,6 +5,7 @@ import { queryKeys } from '@/lib/queryClient';
 
 import { fetchCostHistory } from './api';
 
+/** Storico dei costi ingredienti, usato dai grafici della pagina Analisi costi. */
 export function useCostHistory() {
   const { user } = useAuth();
   return useQuery({

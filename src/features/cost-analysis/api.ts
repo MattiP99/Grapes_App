@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
+/** Uno "scatto" storico del costo di un ingrediente in un momento preciso. */
 export interface CostHistoryRow {
   ingredient_id: string;
   ingredient_name: string;
@@ -7,6 +8,13 @@ export interface CostHistoryRow {
   recorded_at: string;
 }
 
+/**
+ * Legge tutto lo storico dei costi (tabella "cost_history"), popolata nel
+ * tempo — ogni volta che il costo di un ingrediente viene registrato/aggiornato
+ * (es. quando arriva un acquisto) se ne salva uno snapshot qui, invece di
+ * sovrascrivere il valore precedente. Questo storico alimenta i grafici della
+ * pagina Analisi costi.
+ */
 export async function fetchCostHistory(): Promise<CostHistoryRow[]> {
   const { data, error } = await supabase
     .from('cost_history')

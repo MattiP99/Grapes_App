@@ -15,12 +15,20 @@ import type { OrderWithRecipe } from './api';
 import { useUpsertOrder } from './hooks';
 
 const STATUS_VALUES: OrderStatus[] = ['pending', 'confirmed', 'ready', 'delivered', 'cancelled'];
+// Valore usato nel menu a tendina "Ricetta collegata" per indicare "nessuna" (l'ordine non è a catalogo).
 const NO_RECIPE = '';
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * Modale di creazione/modifica di un ordine, apribile da più punti della
+ * pagina Ordini (click su un giorno del calendario, su un ordine, sul
+ * pulsante "+"). Se `order` è `null` si sta creando un ordine nuovo
+ * (precompilato con `defaultDate` se fornita), altrimenti si stanno
+ * modificando i valori di un ordine esistente.
+ */
 export function EditOrderModal({
   visible,
   onClose,
@@ -29,13 +37,17 @@ export function EditOrderModal({
 }: {
   visible: boolean;
   onClose: () => void;
+  /** null = si sta creando un ordine nuovo. */
   order: OrderWithRecipe | null;
+  /** Data di ritiro da precompilare quando si crea un ordine nuovo (es. il giorno cliccato nel calendario). */
   defaultDate?: string;
 }) {
   const t = useTranslation();
   const { data: recipes = [] } = useRecipes();
   const upsert = useUpsertOrder();
 
+  // Uno stato locale per ogni campo del form (il form non è "controllato" da
+  // `order` direttamente: viene copiato in questi stati quando la modale si apre, vedi sotto).
   const [customerName, setCustomerName] = useState('');
   const [cakeName, setCakeName] = useState('');
   const [recipeId, setRecipeId] = useState<string>(NO_RECIPE);
@@ -46,6 +58,11 @@ export function EditOrderModal({
   const [totalPrice, setTotalPrice] = useState('0');
   const [notes, setNotes] = useState('');
 
+  /**
+   * Ogni volta che la modale si apre (o cambia l'ordine passato), riporta il
+   * form ai valori corretti: quelli dell'ordine se lo si sta modificando,
+   * altrimenti tutti i campi vuoti/di default per crearne uno nuovo.
+   */
   useEffect(() => {
     if (!visible) return;
     if (order) {
@@ -72,6 +89,7 @@ export function EditOrderModal({
   }, [visible, order, defaultDate]);
 
   const selectedRecipe = recipes.find((r) => r.id === recipeId);
+  // Pulsante "Salva" attivo solo se i campi obbligatori sono compilati.
   const canSave = customerName.trim().length > 0 && cakeName.trim().length > 0 && Number(quantity) > 0;
 
   const handleSave = async () => {
@@ -84,6 +102,7 @@ export function EditOrderModal({
       quantity: Number(quantity) || 1,
       pickup_date: pickupDate,
       status,
+      // Il prezzo si digita con la virgola (formato italiano) ma va salvato come numero con il punto.
       total_price: Number(totalPrice.replace(',', '.')) || 0,
       notes: notes.trim() || null,
     });
@@ -119,6 +138,7 @@ export function EditOrderModal({
             options={[{ label: t.orders.noRecipe, value: NO_RECIPE }, ...recipes.map((r) => ({ label: r.name, value: r.id }))]}
             onChange={(v) => {
               setRecipeId(v);
+              // Cambiando ricetta, la variante scelta prima non ha più senso: si resetta.
               setVariantId(null);
             }}
           />
@@ -128,6 +148,7 @@ export function EditOrderModal({
         </View>
       </View>
 
+      {/* Il selettore di variante compare solo se la ricetta scelta ne ha più di una (altrimenti è scontata). */}
       {selectedRecipe && selectedRecipe.variants.length > 1 && (
         <Select
           label={t.orders.variant}

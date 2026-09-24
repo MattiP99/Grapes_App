@@ -14,6 +14,7 @@ export function useRecipes() {
   });
 }
 
+/** Varianti con relativo stock di prodotto finito, usate dal Piano di lavoro per scegliere cosa produrre. */
 export function useRecipeVariantsWithStock() {
   const { user } = useAuth();
   return useQuery({

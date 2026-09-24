@@ -11,6 +11,14 @@ function toIsoDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+/**
+ * Selettore di data per iOS/Android: un pulsante che mostra la data scelta
+ * (o "—" se vuota) e apre il date picker NATIVO del sistema operativo al
+ * tocco. Esiste una versione parallela `DateField.web.tsx` che usa un
+ * `<input type="date">` HTML invece del picker nativo (che su web non
+ * esiste) — Expo scegue automaticamente il file giusto in base alla
+ * piattaforma grazie all'estensione ".web.tsx".
+ */
 export function DateField({
   label,
   value,
@@ -41,8 +49,13 @@ export function DateField({
         <DateTimePicker
           value={dateValue}
           mode="date"
+          // Su iOS il picker "inline" resta visibile finché non si chiude a
+          // mano; su Android è già un dialogo che si chiude da solo alla scelta.
           display={Platform.OS === 'ios' ? 'inline' : 'default'}
           onChange={(event, selected) => {
+            // Su iOS il picker resta apert fino a tocco esplicito, quindi
+            // `setOpen` va aggiornato in base alla piattaforma; su Android
+            // il dialogo si chiude comunque da solo dopo questo evento.
             setOpen(Platform.OS === 'ios');
             if (event.type === 'dismissed') return;
             if (selected) onChange(toIsoDate(selected));

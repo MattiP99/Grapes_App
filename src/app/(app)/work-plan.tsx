@@ -22,15 +22,32 @@ function toIso(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+/** Es. "lunedì 18 agosto" nella lingua attiva, per l'intestazione del giorno mostrato. */
 function formatDisplayDate(iso: string, language: 'en' | 'it') {
   const date = new Date(`${iso}T00:00:00`);
   const locale = language === 'it' ? 'it-IT' : 'en-US';
   return date.toLocaleDateString(locale, { weekday: 'long', day: 'numeric', month: 'long' });
 }
 
+/**
+ * PAGINA: Piano di lavoro (rotta "/work-plan").
+ *
+ * Lista delle attività ("task") da fare in un giorno specifico, con freccine
+ * avanti/indietro per cambiare giorno (nessun calendario, solo giorno per
+ * giorno). Ogni task può essere:
+ * - Un task "semplice" (solo un titolo/nota da spuntare).
+ * - Un task legato a una PRODUZIONE (preparare un componente/semilavorato o
+ *   una variante di ricetta): completandolo si apre `CompleteTaskModal`, che
+ *   scala gli ingredienti usati dal magazzino e aggiunge il prodotto finito
+ *   alle scorte — un task semplice invece si completa con un tocco, usando il
+ *   primo magazzino disponibile come riferimento.
+ * I task completati restano in lista (in fondo, con testo depennato) invece
+ * di essere nascosti, per avere sotto controllo cosa è stato fatto in giornata.
+ */
 export default function WorkPlanScreen() {
   const { t, language } = useI18n();
   const theme = useTheme();
+  // Giorno attualmente mostrato (sempre uno solo, si cambia con le freccine).
   const [date, setDate] = useState(() => toIso(new Date()));
   const { data: tasks = [], isLoading } = useWorkPlanTasks(date);
   const deleteTask = useDeleteWorkPlanTask(date);
@@ -38,8 +55,17 @@ export default function WorkPlanScreen() {
   const { data: locations = [] } = useStorageLocations();
 
   const [editing, setEditing] = useState<WorkPlanTaskWithDetails | null | 'new'>(null);
+  // Task per cui è aperta la modale "completa produzione" (solo per task legati a una produzione).
   const [completing, setCompleting] = useState<WorkPlanTaskWithDetails | null>(null);
 
+  /**
+   * Tocco sul cerchietto di un task per completarlo:
+   * - se è già completato non fa nulla;
+   * - se è legato a una produzione, apre la modale di dettaglio (serve scegliere
+   *   da quale magazzino prendere gli ingredienti);
+   * - altrimenti (task semplice) lo completa subito usando il primo magazzino
+   *   disponibile come "sorgente" di default.
+   */
   const handleToggle = (task: WorkPlanTaskWithDetails) => {
     if (task.status === 'completed') return;
     if (task.production_type) {
@@ -49,6 +75,7 @@ export default function WorkPlanScreen() {
     }
   };
 
+  /** Sposta il giorno mostrato avanti/indietro di `days` giorni (-1 = ieri, +1 = domani). */
   const shiftDate = (days: number) => {
     const next = new Date(`${date}T00:00:00`);
     next.setDate(next.getDate() + days);
@@ -62,6 +89,7 @@ export default function WorkPlanScreen() {
     ]);
   };
 
+  // I task da fare prima, quelli già fatti dopo (stesso giorno, solo riordinati).
   const pending = tasks.filter((task) => task.status === 'pending');
   const completed = tasks.filter((task) => task.status === 'completed');
 
@@ -79,6 +107,7 @@ export default function WorkPlanScreen() {
         }
       />
 
+      {/* Navigazione giorno per giorno: freccia sinistra/destra, e toccando la data si torna a oggi */}
       <View style={styles.dateNav}>
         <IconButton icon="chevron-left" onPress={() => shiftDate(-1)} />
         <Pressable onPress={() => setDate(toIso(new Date()))} style={styles.dateLabel}>
@@ -120,6 +149,11 @@ export default function WorkPlanScreen() {
   );
 }
 
+/**
+ * Una riga task: cerchietto da toccare per completare, titolo (depennato se
+ * fatto), note opzionali, e — solo se il task è legato a una produzione — un
+ * badge con il riepilogo "produci X pezzi di Y → magazzino Z".
+ */
 function TaskRow({
   task,
   onToggle,
@@ -135,11 +169,13 @@ function TaskRow({
   const theme = useTheme();
   const done = task.status === 'completed';
 
+  // Etichetta di cosa va prodotto: nome del componente, oppure "Ricetta — Variante".
   const productionLabel = task.production_type === 'component'
     ? task.component?.name
     : task.production_type === 'recipe_variant'
       ? `${task.variant?.recipe?.name ?? ''} — ${task.variant?.label ?? ''}`
       : null;
+  // Unità di misura da mostrare accanto alla quantità: quella del componente, o "pezzi" per le varianti di ricetta.
   const productionUnit = task.production_type === 'component' ? task.component?.unit ?? '' : t.workPlan.unitPieces;
 
   return (

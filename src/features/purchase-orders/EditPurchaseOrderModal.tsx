@@ -15,12 +15,15 @@ import { useTranslation } from '@/i18n';
 import type { PurchaseOrderWithItems } from './api';
 import { useUpsertPurchaseOrder } from './hooks';
 
+// Genera identificatori temporanei univoci per le righe prodotto non ancora
+// salvate (servono solo come `key` di React nella lista, mai inviati al database).
 let tempIdCounter = 0;
 function tempId() {
   tempIdCounter += 1;
   return `tmp-${Date.now()}-${tempIdCounter}`;
 }
 
+/** Una riga prodotto dell'ordine, ancora "in bozza" nel form (i numeri sono stringhe perché sono testo digitato). */
 interface ItemLine {
   key: string;
   ingredient_id: string | null;
@@ -33,6 +36,12 @@ function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * Modale di creazione/modifica di un ordine fornitore: fornitore, data
+ * ordine/consegna prevista, note, e un elenco di righe prodotto (ingrediente,
+ * quantità, magazzino di destinazione, costo unitario) — righe aggiungibili e
+ * rimuovibili liberamente con i pulsanti "+"/cestino.
+ */
 export function EditPurchaseOrderModal({
   visible,
   onClose,
@@ -53,6 +62,7 @@ export function EditPurchaseOrderModal({
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<ItemLine[]>([]);
 
+  /** Ripristina il form ai valori dell'ordine (modifica) o lo svuota (nuovo ordine) ogni volta che la modale si apre. */
   useEffect(() => {
     if (!visible) return;
     if (order) {
@@ -80,6 +90,7 @@ export function EditPurchaseOrderModal({
 
   const ingredientOptions = ingredients.map((i) => ({ label: `${i.name} (${i.unit})`, value: i.id }));
 
+  /** Aggiunge una riga prodotto vuota, precompilata col primo ingrediente/magazzino disponibile. */
   const addItem = () =>
     setItems((its) => [
       ...its,
@@ -89,6 +100,8 @@ export function EditPurchaseOrderModal({
     setItems((its) => its.map((i) => (i.key === key ? { ...i, ...patch } : i)));
   const removeItem = (key: string) => setItems((its) => its.filter((i) => i.key !== key));
 
+  // Si può salvare solo se c'è un fornitore, almeno una riga, e ogni riga ha
+  // ingrediente + magazzino scelti e una quantità positiva.
   const canSave =
     supplier.trim().length > 0 &&
     items.length > 0 &&
@@ -101,9 +114,13 @@ export function EditPurchaseOrderModal({
       order_date: orderDate,
       expected_date: expectedDate || null,
       notes: notes.trim() || null,
+      // Un nuovo ordine parte sempre come "ordered"; se si sta modificando uno
+      // esistente si conserva lo stato attuale (qui non si può cambiarlo: si
+      // passa a "arrivato" solo dal pulsante dedicato nella pagina Acquisti).
       status: order?.status ?? 'ordered',
       items: items.map((i) => ({
         ingredient_id: i.ingredient_id!,
+        // I numeri si digitano con la virgola (formato italiano) ma vanno salvati con il punto.
         quantity: Number(i.quantity.replace(',', '.')),
         location_id: i.location_id!,
         unit_cost: i.unit_cost ? Number(i.unit_cost.replace(',', '.')) : null,
@@ -144,6 +161,7 @@ export function EditPurchaseOrderModal({
         <IconButton icon="plus" onPress={addItem} />
       </View>
 
+      {/* Una riga per ogni prodotto ordinato: ingrediente, quantità, magazzino di destinazione, costo unitario opzionale */}
       {items.map((item) => (
         <View key={item.key} style={styles.itemRow}>
           <View style={styles.flex2}>

@@ -4,6 +4,12 @@ import { type ComponentProps } from 'react';
 
 type Props = Omit<ComponentProps<typeof Link>, 'href'> & { href: Href & string };
 
+/**
+ * Link verso un sito esterno (fuori dall'app). Su web si comporta come un
+ * normale link `<a target="_blank">`. Su iOS/Android invece intercetta il
+ * click e apre un browser "in-app" (una finestra dentro l'app stessa) invece
+ * di far uscire l'utente verso l'app Safari/Chrome del telefono.
+ */
 export function ExternalLink({ href, ...rest }: Props) {
   return (
     <Link

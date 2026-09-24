@@ -7,6 +7,7 @@ export interface WorkPlanTaskWithDetails extends WorkPlanTask {
   target_location: { name: string } | null;
 }
 
+/** Tutti i task di un giorno specifico (la pagina Piano di lavoro ne mostra sempre uno alla volta). */
 export async function fetchWorkPlanTasks(date: string): Promise<WorkPlanTaskWithDetails[]> {
   const { data, error } = await supabase
     .from('work_plan_tasks')
@@ -17,11 +18,13 @@ export async function fetchWorkPlanTasks(date: string): Promise<WorkPlanTaskWith
   return (data ?? []) as unknown as WorkPlanTaskWithDetails[];
 }
 
+/** Dati del form di creazione/modifica task (vedi EditWorkPlanTaskModal). */
 export interface WorkPlanTaskFormValues {
   id?: string;
   task_date: string;
   title: string;
   notes: string | null;
+  // Tutti questi campi sono null per un task "semplice" (senza produzione collegata).
   production_type: ProductionType | null;
   component_id: string | null;
   variant_id: string | null;
@@ -39,6 +42,13 @@ export async function deleteWorkPlanTask(id: string) {
   if (error) throw error;
 }
 
+/**
+ * Completa un task di produzione: come `moveStock`/`receivePurchaseOrder`,
+ * delega tutto a una funzione del database ("complete_work_plan_task") che
+ * scala gli ingredienti necessari dal magazzino scelto, aggiunge il prodotto
+ * finito (componente o variante di ricetta) alle scorte, e segna il task come
+ * completato — tutto in un'unica operazione atomica.
+ */
 export async function completeWorkPlanTask(taskId: string, sourceLocationId: string) {
   const { error } = await supabase.rpc('complete_work_plan_task', {
     p_task_id: taskId,

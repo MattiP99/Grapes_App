@@ -3,7 +3,11 @@ import { buildStockByLocation } from '@/lib/stock';
 import { supabase } from '@/lib/supabase';
 import type { Component, ComponentIngredient, ComponentWithCost, ComponentWithStock, Ingredient } from '@/types/database';
 
-/** Componenti con costo calcolato e stock prodotto/immagazzinato per location. */
+/**
+ * Componenti (semilavorati) con costo calcolato E quantità già pronte in
+ * magazzino (usato dal Piano di lavoro, dove si scelgono componenti da
+ * produrre in base a quanti ne restano già fatti).
+ */
 export async function fetchComponentsWithStock(): Promise<ComponentWithStock[]> {
   const [components, locations, { data: stockRows, error: stockError }] = await Promise.all([
     fetchComponents(),
@@ -18,6 +22,11 @@ export async function fetchComponentsWithStock(): Promise<ComponentWithStock[]> 
   }));
 }
 
+/**
+ * Recupera tutti i componenti (semilavorati) con il costo totale e per-unità
+ * calcolato dagli ingredienti che li compongono. Usato dalla pagina Ricette
+ * (tab Componenti) e da qui, dalle ricette che li usano nelle loro varianti.
+ */
 export async function fetchComponents(): Promise<ComponentWithCost[]> {
   const { data: components, error } = await supabase.from('components').select('*').order('name');
   if (error) throw error;
@@ -35,6 +44,7 @@ export async function fetchComponents(): Promise<ComponentWithCost[]> {
       ingredient: Ingredient;
     })[];
     const totalCost = ingredients.reduce((sum, i) => sum + i.quantity * i.ingredient.cost_per_unit, 0);
+    // Il costo totale di un'infornata (`batch_yield` pezzi) diviso per pezzo.
     const costPerUnit = component.batch_yield > 0 ? totalCost / component.batch_yield : 0;
     return { ...component, ingredients, totalCost, costPerUnit };
   });
@@ -45,14 +55,17 @@ export interface ComponentIngredientDraft {
   quantity: number;
 }
 
+/** Dati del form di creazione/modifica componente (vedi EditComponentModal). */
 export interface ComponentFormValues {
   id?: string;
   name: string;
   unit: string;
+  /** Quanti pezzi/unità produce UNA infornata di questo componente (serve per calcolare il costo per unità). */
   batch_yield: number;
   ingredients: ComponentIngredientDraft[];
 }
 
+/** Crea o aggiorna un componente e riscrive da zero la sua lista ingredienti. */
 export async function upsertComponent(owner_id: string, values: ComponentFormValues): Promise<Component> {
   const { data: component, error } = await supabase
     .from('components')

@@ -5,6 +5,13 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
+/**
+ * Cornice grafica comune alle pagine di Login e Registrazione: logo "GRAPES",
+ * sottotitolo "Santa Margherita Ligure", e una card centrata che contiene il
+ * form passato come `children`. Gestisce anche lo spostamento del contenuto
+ * quando appare la tastiera (KeyboardAvoidingView, solo su iOS: su Android il
+ * comportamento di default del sistema è già sufficiente).
+ */
 export function AuthScreenLayout({ children }: { children: ReactNode }) {
   const theme = useTheme();
 

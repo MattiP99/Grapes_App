@@ -15,18 +15,29 @@ import type { ComponentWithCost } from '@/types/database';
 
 import { useUpsertComponent } from './hooks';
 
+// Genera identificatori temporanei univoci per le righe ingrediente non
+// ancora salvate (servono solo come `key` di React, mai inviati al database).
 let tempIdCounter = 0;
 function tempId() {
   tempIdCounter += 1;
   return `tmp-${Date.now()}-${tempIdCounter}`;
 }
 
+/** Una riga ingrediente del componente, ancora "in bozza" nel form. */
 interface IngredientLine {
   key: string;
   ingredient_id: string | null;
   quantity: string;
 }
 
+/**
+ * Modale di creazione/modifica di un componente (semilavorato): nome, unità,
+ * "resa" di un'infornata (`batch_yield`, quanti pezzi/quanta quantità produce
+ * una singola preparazione), e l'elenco degli ingredienti che lo compongono
+ * con relative quantità. In fondo mostra un'ANTEPRIMA live del costo totale e
+ * del costo per unità, ricalcolata a ogni modifica (utile per capire subito
+ * se il prezzo di vendita finale avrà un margine sensato).
+ */
 export function EditComponentModal({
   visible,
   onClose,
@@ -69,6 +80,7 @@ export function EditComponentModal({
     setLines((ls) => ls.map((l) => (l.key === key ? { ...l, ...patch } : l)));
   const removeLine = (key: string) => setLines((ls) => ls.filter((l) => l.key !== key));
 
+  /** Costo totale (somma quantità × costo unitario di ogni riga) e costo per unità (diviso per la resa dell'infornata). Ricalcolato ad ogni modifica del form. */
   const preview = useMemo(() => {
     const totalCost = lines.reduce((sum, l) => {
       const ingredient = ingredients.find((i) => i.id === l.ingredient_id);
@@ -88,6 +100,7 @@ export function EditComponentModal({
       name: name.trim(),
       unit,
       batch_yield: Number(batchYield.replace(',', '.')) || 0,
+      // Righe senza ingrediente scelto o senza quantità valida vengono scartate silenziosamente al salvataggio.
       ingredients: lines
         .filter((l) => l.ingredient_id && Number(l.quantity) > 0)
         .map((l) => ({ ingredient_id: l.ingredient_id!, quantity: Number(l.quantity.replace(',', '.')) })),
@@ -155,6 +168,7 @@ export function EditComponentModal({
         </View>
       ))}
 
+      {/* Anteprima live del costo, ricalcolata automaticamente ad ogni modifica delle righe qui sopra */}
       <View style={styles.previewRow}>
         <ThemedText type="small" themeColor="textSecondary">
           {t.components.costPreview}

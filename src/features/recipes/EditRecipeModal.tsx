@@ -19,12 +19,15 @@ import type { RecipeWithVariants } from '@/types/database';
 
 import { useUpsertRecipe } from './hooks';
 
+// Genera identificatori temporanei univoci per varianti/righe non ancora
+// salvate (servono solo come `key` di React, mai inviati al database).
 let tempIdCounter = 0;
 function tempId() {
   tempIdCounter += 1;
   return `tmp-${Date.now()}-${tempIdCounter}`;
 }
 
+/** Una riga ingrediente di una variante può puntare a un ingrediente "semplice" oppure a un componente/semilavorato. */
 type IngredientSource = 'ingredient' | 'component';
 
 interface IngredientLine {
@@ -34,8 +37,10 @@ interface IngredientLine {
   quantity: string;
 }
 
+/** Una variante ancora "in bozza" nel form (numeri come stringhe perché sono testo digitato). */
 interface VariantForm {
   key: string;
+  /** Presente solo se questa variante esiste già sul database (si sta modificando, non creando). */
   id?: string;
   label: string;
   total_weight: string;
@@ -43,10 +48,20 @@ interface VariantForm {
   ingredients: IngredientLine[];
 }
 
+/** Una variante vuota di partenza, usata sia per una ricetta nuova sia quando si clicca "Aggiungi variante". */
 function emptyVariant(label: string): VariantForm {
   return { key: tempId(), label, total_weight: '', portions: '1', ingredients: [] };
 }
 
+/**
+ * Modale di creazione/modifica di una ricetta — il form più complesso
+ * dell'app, perché una ricetta può avere PIÙ varianti (es. "Piccola"/"Grande"),
+ * e ognuna ha una sua lista di ingredienti indipendente. Ogni riga ingrediente
+ * di una variante può puntare a un ingrediente semplice OPPURE a un
+ * componente/semilavorato (selettore "source" a sinistra di ogni riga),
+ * quindi lo stato del form è annidato: lista di varianti → lista di righe
+ * ingrediente per ciascuna.
+ */
 export function EditRecipeModal({
   visible,
   onClose,
@@ -66,6 +81,7 @@ export function EditRecipeModal({
   const [category, setCategory] = useState<string>(RECIPE_CATEGORIES[0]);
   const [description, setDescription] = useState('');
   const [sellPrice, setSellPrice] = useState('0');
+  // Si parte sempre con almeno una variante ("Standard"): non ha senso una ricetta senza nessuna variante.
   const [variants, setVariants] = useState<VariantForm[]>([emptyVariant('Standard')]);
 
   useEffect(() => {
@@ -85,6 +101,8 @@ export function EditRecipeModal({
               portions: String(v.portions),
               ingredients: v.ingredients.map((i) => ({
                 key: i.id,
+                // Ogni riga salvata ha SOLO ingredient_id o SOLO component_id compilato: da quale dei
+                // due non è null si deduce se questa riga era un ingrediente o un componente.
                 source: i.component_id ? 'component' : 'ingredient',
                 ref_id: i.ingredient_id ?? i.component_id,
                 quantity: String(i.quantity),
@@ -104,6 +122,7 @@ export function EditRecipeModal({
   const ingredientOptions = ingredients.map((i) => ({ label: `${i.name} (${i.unit})`, value: i.id }));
   const componentOptions = components.map((c) => ({ label: `${c.name} (€${c.costPerUnit.toFixed(2)}/${c.unit})`, value: c.id }));
 
+  /** Aggiorna i campi di UNA variante specifica (identificata dalla sua `key`), lasciando le altre intatte. */
   const updateVariant = (key: string, patch: Partial<VariantForm>) => {
     setVariants((vs) => vs.map((v) => (v.key === key ? { ...v, ...patch } : v)));
   };
@@ -111,6 +130,7 @@ export function EditRecipeModal({
   const addVariant = () => setVariants((vs) => [...vs, emptyVariant(`Variant ${vs.length + 1}`)]);
   const removeVariant = (key: string) => setVariants((vs) => vs.filter((v) => v.key !== key));
 
+  /** Aggiunge una riga ingrediente vuota alla variante `variantKey` (non alle altre). */
   const addIngredientLine = (variantKey: string) => {
     setVariants((vs) =>
       vs.map((v) =>
@@ -120,6 +140,7 @@ export function EditRecipeModal({
       )
     );
   };
+  /** Aggiorna una riga ingrediente specifica, individuata da variante + riga (doppia chiave, perché le righe sono annidate dentro le varianti). */
   const updateIngredientLine = (variantKey: string, lineKey: string, patch: Partial<IngredientLine>) => {
     setVariants((vs) =>
       vs.map((v) =>
@@ -135,6 +156,8 @@ export function EditRecipeModal({
     );
   };
 
+  // Si può salvare solo se c'è un nome e OGNI variante ha un'etichetta e un peso totale positivo
+  // (le righe ingrediente invece sono opzionali: una variante può anche non averne ancora).
   const canSave =
     name.trim().length > 0 &&
     variants.length > 0 &&
@@ -152,6 +175,8 @@ export function EditRecipeModal({
         label: v.label.trim(),
         total_weight: Number(v.total_weight.replace(',', '.')) || 0,
         portions: Number(v.portions) || 1,
+        // Righe senza riferimento scelto o senza quantità valida vengono scartate; qui si
+        // "riespande" `source` + `ref_id` nel formato che l'API si aspetta (ingredient_id XOR component_id).
         ingredients: v.ingredients
           .filter((i) => i.ref_id && Number(i.quantity) > 0)
           .map((i) =>
@@ -201,6 +226,7 @@ export function EditRecipeModal({
         <Button label={t.recipes.addVariant} variant="secondary" onPress={addVariant} icon={<Feather name="plus" size={14} color={theme.text} />} />
       </View>
 
+      {/* Una card per ogni variante: etichetta/peso/porzioni in alto, sotto le sue righe ingrediente */}
       {variants.map((variant) => (
         <Card key={variant.key} muted style={styles.variantCard}>
           <View style={styles.row}>
@@ -223,6 +249,7 @@ export function EditRecipeModal({
                 keyboardType="number-pad"
               />
             </View>
+            {/* Non si può eliminare l'ultima variante rimasta: una ricetta deve averne sempre almeno una. */}
             {variants.length > 1 && <IconButton icon="trash-2" color="danger" onPress={() => removeVariant(variant.key)} />}
           </View>
 
@@ -235,6 +262,7 @@ export function EditRecipeModal({
 
           {variant.ingredients.map((line) => (
             <View key={line.key} style={styles.ingredientRow}>
+              {/* Primo selettore: "è un ingrediente o un componente?" — cambia le opzioni del secondo selettore */}
               <View style={styles.flexSource}>
                 <Select
                   value={line.source}
@@ -245,6 +273,7 @@ export function EditRecipeModal({
                   onChange={(v) =>
                     updateIngredientLine(variant.key, line.key, {
                       source: v as IngredientSource,
+                      // Cambiando tipo, il riferimento scelto prima non ha più senso: si sceglie il primo disponibile del nuovo tipo.
                       ref_id: v === 'component' ? components[0]?.id ?? null : ingredients[0]?.id ?? null,
                     })
                   }

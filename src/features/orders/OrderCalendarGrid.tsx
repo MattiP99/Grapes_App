@@ -1,10 +1,10 @@
 import { Feather } from '@expo/vector-icons';
 import { useMemo } from 'react';
-import { Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { IconButton } from '@/components/ui/IconButton';
-import { Radii, Spacing } from '@/constants/theme';
+import { Radii, Spacing, TabletBreakpoint } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { useI18n } from '@/i18n';
 import type { OrderStatus } from '@/types/database';
@@ -13,6 +13,7 @@ import type { OrderWithRecipe } from './api';
 
 export type CalendarViewMode = 'month' | 'week' | 'day';
 
+/** Converte una Date in stringa "YYYY-MM-DD" (formato usato ovunque nel database per le date). */
 function toIso(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -39,6 +40,7 @@ function buildMonthGrid(viewDate: Date) {
   });
 }
 
+/** I 7 giorni (lun→dom) della settimana che contiene `viewDate`. */
 function buildWeekDays(viewDate: Date) {
   const start = startOfWeek(viewDate);
   return Array.from({ length: 7 }, (_, i) => {
@@ -48,6 +50,21 @@ function buildWeekDays(viewDate: Date) {
   });
 }
 
+/**
+ * Componente calendario usato dalla pagina Ordini, con 3 modalità scelte da
+ * `mode`:
+ * - "month": griglia classica 7×6 (un mese intero), celle piccole con al
+ *   massimo 2 ordini visibili + contatore "+N" — pensata per una vista
+ *   d'insieme, non per leggere ogni dettaglio.
+ * - "week": 7 giorni. Su schermi larghi (tablet/desktop) mostrati come 7
+ *   colonne affiancate (`WeekGridColumn`, più spazio per riga = testo leggibile);
+ *   su mobile come un elenco verticale di righe (`AgendaDayRow`, ogni giorno
+ *   occupa tutta la larghezza per restare leggibile anche su schermo piccolo).
+ * - "day": un solo giorno, stessa resa grafica della riga "week" mobile ma con
+ *   un solo elemento.
+ * La navigazione avanti/indietro (freccine in alto) sposta `viewDate` di un
+ * mese/settimana/giorno secondo la modalità attiva.
+ */
 export function OrderCalendarGrid({
   mode,
   viewDate,
@@ -71,9 +88,12 @@ export function OrderCalendarGrid({
 }) {
   const theme = useTheme();
   const { t, language } = useI18n();
+  const { width } = useWindowDimensions();
+  const isWide = width >= TabletBreakpoint;
 
   const todayIso = useMemo(() => toIso(new Date()), []);
 
+  /** Sposta `viewDate` avanti (amount=1) o indietro (amount=-1) di un mese/settimana/giorno. */
   const goBy = (unit: 'month' | 'week' | 'day', amount: number) => {
     const next = new Date(viewDate);
     if (unit === 'month') next.setMonth(next.getMonth() + amount);
@@ -81,6 +101,9 @@ export function OrderCalendarGrid({
     onViewDateChange(next);
   };
 
+  // Etichetta mostrata al centro dell'intestazione: "Agosto 2026" in modalità
+  // mese, "Sabato 15 agosto 2026" in modalità giorno, oppure un intervallo
+  // "11 – 17 agosto 2026" (o "28 lug – 3 ago 2026" se la settimana attraversa due mesi) in modalità settimana.
   const headerLabel = useMemo(() => {
     if (mode === 'month') {
       const label = new Intl.DateTimeFormat(language, { month: 'long', year: 'numeric' }).format(viewDate);
@@ -130,6 +153,23 @@ export function OrderCalendarGrid({
           statusColors={statusColors}
           theme={theme}
         />
+      ) : mode === 'week' && isWide ? (
+        <View style={styles.weekGrid}>
+          {buildWeekDays(viewDate).map((day) => (
+            <WeekGridColumn
+              key={toIso(day)}
+              day={day}
+              orders={ordersByDate.get(toIso(day)) ?? []}
+              isToday={toIso(day) === todayIso}
+              language={language}
+              emptyLabel={t.orders.noOrdersShort}
+              onOrderPress={onOrderPress}
+              onAddPress={onAddPress}
+              statusColors={statusColors}
+              theme={theme}
+            />
+          ))}
+        </View>
       ) : (
         <View style={styles.agenda}>
           {(mode === 'day' ? [viewDate] : buildWeekDays(viewDate)).map((day) => (
@@ -152,6 +192,7 @@ export function OrderCalendarGrid({
   );
 }
 
+/** Vista "Mese": griglia 7×6 con puntini/etichette compatte per ogni giorno (usata da tutte le larghezze di schermo). */
 function MonthGrid({
   viewDate,
   ordersByDate,
@@ -238,6 +279,12 @@ function MonthGrid({
   );
 }
 
+/**
+ * Una riga "a piena larghezza" per un giorno: data + pulsante "+" per
+ * aggiungere un ordine, e sotto l'elenco degli ordini di quel giorno (ognuno
+ * cliccabile per aprirne subito la modifica). Usata per la vista "Giorno" e
+ * per la vista "Settimana" quando lo schermo è troppo stretto per le colonne affiancate.
+ */
 function AgendaDayRow({
   day,
   orders,
@@ -294,6 +341,73 @@ function AgendaDayRow({
   );
 }
 
+/**
+ * Come AgendaDayRow, ma pensata per stare AFFIANCATA ad altre 6 colonne
+ * uguali (una per ogni giorno della settimana) invece che impilata — usata
+ * per la vista "Settimana" su schermi larghi, dove c'è spazio per mostrarle tutte in riga.
+ */
+function WeekGridColumn({
+  day,
+  orders,
+  isToday,
+  language,
+  emptyLabel,
+  onOrderPress,
+  onAddPress,
+  statusColors,
+  theme,
+}: {
+  day: Date;
+  orders: OrderWithRecipe[];
+  isToday: boolean;
+  language: string;
+  emptyLabel: string;
+  onOrderPress: (order: OrderWithRecipe) => void;
+  onAddPress: (dateIso: string) => void;
+  statusColors: Record<OrderStatus, string>;
+  theme: ReturnType<typeof useTheme>;
+}) {
+  const dateIso = toIso(day);
+  const label = new Intl.DateTimeFormat(language, { weekday: 'short', day: 'numeric' }).format(day);
+
+  return (
+    <View
+      style={[
+        styles.weekGridColumn,
+        { borderColor: isToday ? theme.primary : theme.border, backgroundColor: theme.surface },
+      ]}>
+      <View style={styles.agendaRowHeader}>
+        <ThemedText type="smallBold" themeColor={isToday ? 'primary' : 'text'} style={styles.capitalize}>
+          {label}
+        </ThemedText>
+        <IconButton icon="plus" size={14} onPress={() => onAddPress(dateIso)} />
+      </View>
+
+      {orders.length === 0 ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          {emptyLabel}
+        </ThemedText>
+      ) : (
+        <View style={styles.dayOrders}>
+          {orders.map((order) => (
+            <Pressable
+              key={order.id}
+              onPress={() => onOrderPress(order)}
+              style={[styles.orderChip, { backgroundColor: theme.surfaceMuted, borderLeftColor: statusColors[order.status] }]}>
+              <ThemedText type="small" numberOfLines={1} style={styles.orderChipText}>
+                {order.customer_name}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.orderChipText}>
+                {order.cake_name}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
@@ -321,6 +435,15 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   orderChipText: { flexShrink: 1 },
+  weekGrid: { flexDirection: 'row', gap: Spacing.two, alignItems: 'stretch' },
+  weekGridColumn: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: Radii.medium,
+    padding: Spacing.two,
+    gap: Spacing.two,
+    minHeight: 180,
+  },
   agenda: { gap: Spacing.two },
   agendaRow: {
     borderWidth: 1,
