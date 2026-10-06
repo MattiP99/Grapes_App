@@ -75,11 +75,17 @@ export default function WorkPlanScreen() {
     }
   };
 
-  /** Sposta il giorno mostrato avanti/indietro di `days` giorni (-1 = ieri, +1 = domani). */
+  /**
+   * Sposta il giorno mostrato avanti/indietro di `days` giorni (-1 = ieri, +1 = domani).
+   * Fatto interamente in UTC (parsing con "Z" + `setUTCDate` + `toISOString`, che è
+   * già UTC): mischiare un orario locale con `toISOString` sfaserebbe la data di un
+   * giorno nei fusi orari avanti rispetto a UTC (es. l'Italia), rendendo "avanti" un
+   * no-op e "indietro" un salto di due giorni invece di uno.
+   */
   const shiftDate = (days: number) => {
-    const next = new Date(`${date}T00:00:00`);
-    next.setDate(next.getDate() + days);
-    setDate(toIso(next));
+    const next = new Date(`${date}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + days);
+    setDate(next.toISOString().slice(0, 10));
   };
 
   const handleDelete = (task: WorkPlanTaskWithDetails) => {
@@ -202,7 +208,9 @@ function TaskRow({
             <View style={styles.badgeRow}>
               <Badge
                 tone={done ? 'success' : 'primary'}
-                label={`${t.workPlan.produce} ${task.quantity} ${productionUnit} ${productionLabel} → ${task.target_location?.name ?? ''}`}
+                label={`${t.workPlan.produce} ${task.quantity} ${productionUnit} ${productionLabel} → ${
+                  task.target_location ? t.ingredients[task.target_location.type] : ''
+                }`}
               />
             </View>
           )}

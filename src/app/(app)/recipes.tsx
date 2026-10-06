@@ -239,7 +239,7 @@ function RecipeRow({
             color={theme.textSecondary}
             style={{ transform: [{ rotate: expanded ? '90deg' : '0deg' }] }}
           />
-          <Badge label={recipe.category} />
+          <Badge label={t.recipes.categories[recipe.category as keyof typeof t.recipes.categories] ?? recipe.category} />
           <ThemedText type="sectionTitle">{recipe.name}</ThemedText>
         </View>
 

@@ -85,6 +85,13 @@ export const en = {
     search: 'Search...',
     name: 'Name',
     category: 'Category',
+    categories: {
+      Bread: 'Bread',
+      Cake: 'Cake',
+      Pastry: 'Pastry',
+      Savory: 'Savory',
+      Other: 'Other',
+    },
     description: 'Description',
     sellingPrice: 'Selling price (€)',
     portions: 'Portions',

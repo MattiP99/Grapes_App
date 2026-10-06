@@ -1,17 +1,17 @@
 import { supabase } from '@/lib/supabase';
-import type { ProductionType, WorkPlanTask } from '@/types/database';
+import type { ProductionType, StorageLocationType, WorkPlanTask } from '@/types/database';
 
 export interface WorkPlanTaskWithDetails extends WorkPlanTask {
   component: { name: string; unit: string } | null;
   variant: { label: string; recipe: { name: string } | null } | null;
-  target_location: { name: string } | null;
+  target_location: { name: string; type: StorageLocationType } | null;
 }
 
 /** Tutti i task di un giorno specifico (la pagina Piano di lavoro ne mostra sempre uno alla volta). */
 export async function fetchWorkPlanTasks(date: string): Promise<WorkPlanTaskWithDetails[]> {
   const { data, error } = await supabase
     .from('work_plan_tasks')
-    .select('*, component:components(name, unit), variant:recipe_variants(label, recipe:recipes(name)), target_location:storage_locations(name)')
+    .select('*, component:components(name, unit), variant:recipe_variants(label, recipe:recipes(name)), target_location:storage_locations(name, type)')
     .eq('task_date', date)
     .order('created_at');
   if (error) throw error;

@@ -76,7 +76,7 @@ export function CompleteTaskModal({
       <Select
         label={t.workPlan.sourceLocation}
         value={sourceLocationId}
-        options={locations.map((l) => ({ label: l.name, value: l.id }))}
+        options={locations.map((l) => ({ label: t.ingredients[l.type], value: l.id }))}
         onChange={setSourceLocationId}
       />
     </AppModal>

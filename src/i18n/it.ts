@@ -90,6 +90,13 @@ export const it: TranslationSchema = {
     search: 'Cerca...',
     name: 'Nome',
     category: 'Categoria',
+    categories: {
+      Bread: 'Pane',
+      Cake: 'Torta',
+      Pastry: 'Pasticceria',
+      Savory: 'Salato',
+      Other: 'Altro',
+    },
     description: 'Descrizione',
     sellingPrice: 'Prezzo di vendita (€)',
     portions: 'Porzioni',

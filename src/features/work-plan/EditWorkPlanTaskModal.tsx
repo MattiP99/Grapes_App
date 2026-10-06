@@ -158,7 +158,7 @@ export function EditWorkPlanTaskModal({
             <Select
               label={t.workPlan.targetLocation}
               value={targetLocationId}
-              options={locations.map((l) => ({ label: l.name, value: l.id }))}
+              options={locations.map((l) => ({ label: t.ingredients[l.type], value: l.id }))}
               onChange={setTargetLocationId}
             />
           </View>

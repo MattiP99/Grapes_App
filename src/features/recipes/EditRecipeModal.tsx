@@ -208,7 +208,7 @@ export function EditRecipeModal({
           <Select
             label={t.recipes.category}
             value={category as any}
-            options={RECIPE_CATEGORIES.map((c) => ({ label: c, value: c }))}
+            options={RECIPE_CATEGORIES.map((c) => ({ label: t.recipes.categories[c], value: c }))}
             onChange={setCategory}
           />
         </View>

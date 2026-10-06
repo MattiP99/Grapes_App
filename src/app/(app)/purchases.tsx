@@ -117,7 +117,7 @@ export default function PurchasesScreen() {
                 {item.items.map((purchaseItem) => (
                   <ThemedText key={purchaseItem.id} type="small" themeColor="textSecondary">
                     · {purchaseItem.ingredient?.name}: {purchaseItem.quantity} {purchaseItem.ingredient?.unit} →{' '}
-                    {purchaseItem.location?.name}
+                    {purchaseItem.location ? t.ingredients[purchaseItem.location.type] : ''}
                     {purchaseItem.unit_cost != null ? ` (€${purchaseItem.unit_cost.toFixed(2)}/u)` : ''}
                   </ThemedText>
                 ))}

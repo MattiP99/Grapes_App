@@ -84,7 +84,7 @@ export function MoveStockModal({
             label={t.ingredients.from}
             value={fromId}
             options={locations.map((l) => ({
-              label: `${l.name} (${ingredient.stock[l.type]?.quantity ?? 0} ${ingredient.unit})`,
+              label: `${t.ingredients[l.type]} (${ingredient.stock[l.type]?.quantity ?? 0} ${ingredient.unit})`,
               value: l.id,
             }))}
             onChange={setFromId}
@@ -96,7 +96,7 @@ export function MoveStockModal({
             label={t.ingredients.to}
             // Il magazzino di destinazione non può essere lo stesso di partenza, quindi viene escluso dalle opzioni.
             value={toId}
-            options={locations.filter((l) => l.id !== fromId).map((l) => ({ label: l.name, value: l.id }))}
+            options={locations.filter((l) => l.id !== fromId).map((l) => ({ label: t.ingredients[l.type], value: l.id }))}
             onChange={setToId}
           />
         </View>

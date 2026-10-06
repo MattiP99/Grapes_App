@@ -100,7 +100,7 @@ export default function DashboardScreen() {
           <View style={styles.list}>
             {stats.stockByStorage.map(({ location, itemsCount, totalQuantity }) => (
               <View key={location.id} style={[styles.storageRow, { backgroundColor: theme.surfaceMuted }]}>
-                <ThemedText>{location.name}</ThemedText>
+                <ThemedText>{t.ingredients[location.type as StorageLocationType]}</ThemedText>
                 <View style={styles.storageRowRight}>
                   <ThemedText type="small" themeColor="textSecondary">
                     {itemsCount} {t.dashboard.items}
@@ -124,7 +124,7 @@ export default function DashboardScreen() {
               {stats.lowStockAlerts.slice(0, 5).map((alert) => (
                 <View key={`${alert.ingredient.id}-${alert.location.id}`}>
                   <ThemedText type="label" themeColor="textSecondary">
-                    {alert.location.name.toUpperCase()}
+                    {t.ingredients[alert.location.type as StorageLocationType].toUpperCase()}
                   </ThemedText>
                   <View style={[styles.alertRow, { backgroundColor: theme.dangerBg }]}>
                     <View style={styles.alertLeft}>
@@ -161,7 +161,7 @@ export default function DashboardScreen() {
             {stats.topRecipes.map((recipe) => (
               <View key={recipe.id} style={styles.recipeRow}>
                 <View style={styles.recipeLeft}>
-                  <Badge label={recipe.category} />
+                  <Badge label={t.recipes.categories[recipe.category as keyof typeof t.recipes.categories] ?? recipe.category} />
                   <ThemedText>{recipe.name}</ThemedText>
                 </View>
                 <View style={styles.recipeRight}>

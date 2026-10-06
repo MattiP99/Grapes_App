@@ -1,9 +1,9 @@
 import { supabase } from '@/lib/supabase';
-import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus } from '@/types/database';
+import type { PurchaseOrder, PurchaseOrderItem, PurchaseOrderStatus, StorageLocationType } from '@/types/database';
 
 export interface PurchaseOrderItemWithIngredient extends PurchaseOrderItem {
   ingredient: { name: string; unit: string } | null;
-  location: { name: string } | null;
+  location: { name: string; type: StorageLocationType } | null;
 }
 
 export interface PurchaseOrderWithItems extends PurchaseOrder {
@@ -18,7 +18,7 @@ export async function fetchPurchaseOrders(): Promise<PurchaseOrderWithItems[]> {
 
   const { data: items, error: itemsError } = await supabase
     .from('purchase_order_items')
-    .select('*, ingredient:ingredients(name, unit), location:storage_locations(name)')
+    .select('*, ingredient:ingredients(name, unit), location:storage_locations(name, type)')
     .in('purchase_order_id', orders.map((o) => o.id));
   if (itemsError) throw itemsError;
 

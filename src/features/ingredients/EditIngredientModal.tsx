@@ -132,7 +132,7 @@ export function EditIngredientModal({
         </ThemedText>
         {locations.map((location: StorageLocation) => (
           <View key={location.id} style={styles.stockRow}>
-            <ThemedText style={styles.stockLabel}>{location.name}</ThemedText>
+            <ThemedText style={styles.stockLabel}>{t.ingredients[location.type]}</ThemedText>
             <TextField
               value={stock[location.type].quantity}
               onChangeText={(v) => setStock((s) => ({ ...s, [location.type]: { ...s[location.type], quantity: v } }))}

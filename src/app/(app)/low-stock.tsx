@@ -48,7 +48,7 @@ export default function LowStockScreen() {
           const entry = ing.stock[location.type as StorageLocationType]!;
           return { ingredient: ing, quantity: entry.quantity, minThreshold: entry.min_threshold };
         });
-      return { title: location.name, data: rows };
+      return { title: t.ingredients[location.type as StorageLocationType], data: rows };
     })
     .filter((section) => section.data.length > 0);
 

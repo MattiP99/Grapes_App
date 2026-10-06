@@ -152,6 +152,7 @@ export function OrderCalendarGrid({
           onDayPress={onDayPress}
           statusColors={statusColors}
           theme={theme}
+          isWide={isWide}
         />
       ) : mode === 'week' && isWide ? (
         <View style={styles.weekGrid}>
@@ -184,6 +185,7 @@ export function OrderCalendarGrid({
               onAddPress={onAddPress}
               statusColors={statusColors}
               theme={theme}
+              isWide={isWide}
             />
           ))}
         </View>
@@ -202,6 +204,7 @@ function MonthGrid({
   onDayPress,
   statusColors,
   theme,
+  isWide,
 }: {
   viewDate: Date;
   ordersByDate: Map<string, OrderWithRecipe[]>;
@@ -211,6 +214,7 @@ function MonthGrid({
   onDayPress: (dateIso: string) => void;
   statusColors: Record<OrderStatus, string>;
   theme: ReturnType<typeof useTheme>;
+  isWide: boolean;
 }) {
   const days = useMemo(() => buildMonthGrid(viewDate), [viewDate]);
 
@@ -257,10 +261,17 @@ function MonthGrid({
                   <View
                     key={order.id}
                     style={[styles.orderChip, { backgroundColor: theme.surfaceMuted, borderLeftColor: statusColors[order.status] }]}>
-                    <ThemedText type="small" numberOfLines={1} style={styles.orderChipText}>
+                    <ThemedText
+                      type="small"
+                      numberOfLines={1}
+                      style={[styles.orderChipText, !isWide && styles.orderTextCompact]}>
                       {order.customer_name}
                     </ThemedText>
-                    <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.orderChipText}>
+                    <ThemedText
+                      type="small"
+                      themeColor="textSecondary"
+                      numberOfLines={1}
+                      style={[styles.orderChipText, !isWide && styles.orderTextCompact]}>
                       {order.cake_name}
                     </ThemedText>
                   </View>
@@ -295,6 +306,7 @@ function AgendaDayRow({
   onAddPress,
   statusColors,
   theme,
+  isWide,
 }: {
   day: Date;
   orders: OrderWithRecipe[];
@@ -305,6 +317,7 @@ function AgendaDayRow({
   onAddPress: (dateIso: string) => void;
   statusColors: Record<OrderStatus, string>;
   theme: ReturnType<typeof useTheme>;
+  isWide: boolean;
 }) {
   const dateIso = toIso(day);
   const label = new Intl.DateTimeFormat(language, { weekday: 'short', day: 'numeric', month: 'short' }).format(day);
@@ -327,10 +340,17 @@ function AgendaDayRow({
           {orders.map((order) => (
             <Pressable key={order.id} onPress={() => onOrderPress(order)} style={styles.agendaOrderRow}>
               <View style={[styles.agendaDot, { backgroundColor: statusColors[order.status] }]} />
-              <ThemedText type="smallBold" numberOfLines={1} style={styles.flexShrink}>
+              <ThemedText
+                type="smallBold"
+                numberOfLines={1}
+                style={[styles.flexShrink, !isWide && styles.orderTextCompact]}>
                 {order.customer_name}
               </ThemedText>
-              <ThemedText type="small" themeColor="textSecondary" numberOfLines={1} style={styles.flexShrink}>
+              <ThemedText
+                type="small"
+                themeColor="textSecondary"
+                numberOfLines={1}
+                style={[styles.flexShrink, !isWide && styles.orderTextCompact]}>
                 {order.cake_name}
               </ThemedText>
             </Pressable>
@@ -435,6 +455,9 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   orderChipText: { flexShrink: 1 },
+  // Nome cliente/ordine ridotti di 1/3 (13px base → ~8.7px) solo sotto la soglia "tablet",
+  // dove il calendario mostra molte celle/righe strette e il testo pieno affollava troppo.
+  orderTextCompact: { fontSize: 8.7, lineHeight: 12 },
   weekGrid: { flexDirection: 'row', gap: Spacing.two, alignItems: 'stretch' },
   weekGridColumn: {
     flex: 1,

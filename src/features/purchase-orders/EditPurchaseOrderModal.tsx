@@ -182,7 +182,7 @@ export function EditPurchaseOrderModal({
           <View style={styles.flex1}>
             <Select
               value={item.location_id}
-              options={locations.map((l) => ({ label: l.name, value: l.id }))}
+              options={locations.map((l) => ({ label: t.ingredients[l.type], value: l.id }))}
               onChange={(v) => updateItem(item.key, { location_id: v })}
               placeholder={t.purchases.location}
             />
